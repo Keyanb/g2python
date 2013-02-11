@@ -3,59 +3,80 @@ from visa import *
 import string, os, sys, time  
       
 class device:  
-    def __init__(self, name):  
-        self.name = instrument(name)  
-        srs = self.name 
-      
+    def __init__(self, name, debug = False):  
+        self.name = name
+        self.debug = debug
+       
+        if self.debug == False:
+            self.srs = instrument(name)
+            
+    def set_scale(self, scale):
+        if self.debug == False:
+            self.srs.write('SENS ' + str(scale))
+            
     def set_ref_internal(self):  
-        srs = self.name  
-        srs.write('FMOD 1')
+        if self.debug == False:
+            self.srs.write('FMOD 1')
         
     def set_ref_external(self):  
-        srs = self.name 
-        srs.write('FMOD 0')
+        if self.debug == False:
+            self.srs.write('FMOD 0')
 
     def set_phase(self, shift):
-        srs = self.name 
-        srs.write ('PHAS ' + str(shift))
-        
+        if self.debug == False:        
+            self.srs.write ('PHAS ' + str(shift))
+     
     def set_amplitude(self, amplitude):
-        srs = self.name
-        srs.write('SLVL' + str(amplitude))
+        if self.debug == False:        
+            srs = self.name
+            srs.write('SLVL' + str(amplitude))
         
     def get_amplitude(self):
-        srs = self.name
-        return srs.ask('SLVL?')
+        if self.debug == False:
+            srs = self.name
+            return srs.ask('SLVL?')
 
     def set_freq(self, freq):
-        srs = self.name
-        srs.write ('FREQ ' + str(freq))
+        if self.debug == False:
+            self.srs.write ('FREQ ' + str(freq))
 
     def get_freq(self):
-        srs = self.name 
-        return srs.ask ('FREQ?')
-    
+        if self.debug == False:
+            self.srs.write ('FREQ?')
+            return self.srs.read() 
+   
     def set_harm(self, harm):
-        srs = self.name 
-        srs.write ('HARM ' + str(harm))
+        if self.debug == False:
+            self.srs.write ('HARM ' + str(harm))
 
     def set_ref_out(self, voltage):
-        srs = self.name 
-        srs.write ('SLVL ' + str(voltage))
+        if self.debug == False:
+            self.srs.write ('SLVL ' + str(voltage))
         
     def get_ref_out(self, voltage):
-        srs = self.name 
-        srs.write ('SLVL?')
-        return self.read()        
-                    
+        if self.debug == False:
+            self.srs.write ('SLVL?')
+            return self.srs.read()        
+        else:
+            return 1.234
+               
     def read_aux (self, num):
-        srs = self.name 
-        srs.write ('OAUX? ' + str(num))
-        return float(self.read())
+        if self.debug == False:
+            self.srs.write ('OAUX? ' + str(num))
+            return float(self.srs.read())
+        else:
+            return 1.234     
+    
+    def set_aux_out(self, chan, volts):
+        if self.debug == False:        
+            self.srs.write ('AUXV ' + str(chan) + ", " + str(volts))       
     
     def read_input (self, num):
-        srs = self.name 
-        return  srs.ask ('OUTP? ' + str(num))
+        if self.debug == False:
+            self.srs.write ('OUTP? ' + str(num))
+            return float(self.srs.read())    
+        else:
+            return 1.23e-4
 
     def close(self):  
         self.srs.close()  
