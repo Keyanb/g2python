@@ -5,7 +5,7 @@ import matplotlib
 from pylab import *
 
 class cr:
-    def __init__(self, subplot_num, label="default", sty='.-b', auto_scale=True): 
+    def __init__(self, subplot_num=1, label="default", sty='.-b', auto_scale=True): 
         self.subplot_num = subplot_num
         self.data_list = []
         self.time_list = []
