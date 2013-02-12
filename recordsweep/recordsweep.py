@@ -29,75 +29,124 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     def __init__(self, parent=None):
         super(RecordSweepWindow, self).__init__()
         self.setupUi(self)
-        
-        #self.connect(self.alarmCheckBox, SIGNAL("stateChanged(int)"), self.changeAlarm)       
-        #self.connect (self.htrRangeComboBox, SIGNAL("currentIndexChanged(int)"), self.set_htr_range)
-        #self.connect (self.htrOutputLineEdit, SIGNAL ("editingFinished()"), self.set_htr_output)
 
-        self.running = False
-        self.T = threading.Thread(target=self.main_loop)
-        self.T.daemon = True
-        #self.ALARM_ON = self.alarmCheckBox.isChecked()
+        self.lock = QReadWriteLock()         
+        self.datataker = DataTaker(self.lock, self)  
 
-        #self.debug = config_file_reader.get_debug_setting()
-        #self.msg = config_file_reader.get_msg_info()      
-
-    def main_loop(self):
-        
-        using_magnet = True
-        MEAS_TIME = 3
-        DEBUG = True
-
-        #instrumentation setup
-        self.instruments = {}
-        self.instruments['GPIB::8'] = SRS830.SRS830('GPIB::8', debug=DEBUG)
-        
-        # tuple: lockin #, channel, subplot for display
-        self.data_channels = (['GPIB::8',1,1, array([])], ['GPIB::8',2,2, array([])])
-        
- 
-        
-        if using_magnet==True:
-            self.magnet = IPS120.IPS120('GPIB::26', debug=DEBUG)
-            self.fields= array([])
-            
-        #open file, write header
-        out_file = readconfigfile.open_data_file()
-        t_start = time.time()
-        out_file.write('Starting time: ' + str(t_start) + '\n')
-        out_file.write('time, field, X1, Y1, X2, Y2, X3, Y3\n')
-        
         self.ax = self.mplwidget.axes
         self.fig = self.mplwidget.figure
         self.line = []
         
-        for idx, chan in enumerate(self.data_channels):
-            tline, = self.ax.plot(0, 0, '.-')
-            self.line.append(tline)          
+        #for idx, chan in enumerate(self.data_channels):
+        #    tline, = self.ax.plot(0, 0, '.-')
+        #    self.line.append(tline)          
             
         self.ax.tick_params(axis='x', labelsize=8)
         self.ax.tick_params(axis='y', labelsize=8)
+        self.fig.canvas.draw()          
 
-        self.fig.canvas.draw()   
-        
-        running = True
-        t_start = time.time()
-        while running == True:
-            t_str = "%.1f, "%(time.time() - t_start)
-            s2 = self.read_data(t_start, using_magnet)
-            output_string = t_str + s2 + "\n"
-            out_file.write(output_string)
-            print output_string
-            time.sleep(MEAS_TIME)
+                     
+                     
+    @pyqtSignature("")
+    def on_startStopButton_clicked(self):
+        if self.datataker.isStopped():      
+            self.datataker.initialize()            
+            self.datataker.start()
             
+            self.startStopButton.setText("Stop")
+            print ("data taker started")             
+        else:
+            self.datataker.stop()
+            self.startStopButton.setText("Start")
+            print ("data taker stopped") 
+
+
+class DataTaker(QThread):
+    MEAS_TIME = 3      
+    DEBUG = True       
+    USING_MAGNET = True 
+    
+    def __init__(self, lock, parent=None):
+        super(DataTaker, self).__init__(parent)
+        self.lock = lock
+        self.stopped = True
+        self.mutex = QMutex()
+        self.path = None
+        self.completed = False
+
+    def initialize(self, ):
+        self.stopped = True
+        self.completed = False     
+        self.t_start = time.time()
+        #instrumentation setup - store instrument objects in a dictionary by address
+        self.instruments = {}
+        self.instruments['GPIB::8'] = SRS830.SRS830('GPIB::8', debug=self.DEBUG)
+        
+        # tuple: lockin #, channel, subplot for display
+        self.data_channels = []
+        
+        self.data_channels.append(['TIME', lambda: time.time() - self.t_start, []])
+        if self.USING_MAGNET==True:
+            self.magnet = IPS120.IPS120('GPIB::26', debug=self.DEBUG)
+            self.data_channels.append(['FIELD', lambda:self.magnet.read_field(), []])
+        self.data_channels.append(['X', lambda: self.instruments['GPIB::8'].read_input(1), []])
+        self.data_channels.append(['Y', lambda: self.instruments['GPIB::8'].read_input(2), []])
+             
+        #open file, write header
+        out_file = readconfigfile.open_data_file()
+
+        out_file.write('Starting time: ' + str(self.t_start) + '\n')
+        for chan in self.data_channels:        
+            out_file.write(chan[0] + ", ")
+        out_file.write('\n')
+        
+
+        
+    def run(self):
+        self.stopped = False
+        self.main_loop()
+        print ("yay")
+        self.stop()
+        self.emit(SIGNAL("finished(bool)"), self.completed)        
+        
+    
+    def stop(self):
+        try:
+            self.mutex.lock()
+            self.stopped = True
+        finally:
+            self.mutex.unlock()
+
+    def isStopped(self):
+        try:
+            self.mutex.lock()
+            return self.stopped
+        finally:
+            self.mutex.unlock()    
+    
+    def main_loop(self):
+        print ("entered main loop")
+        t_start = time.time()
+        while self.isStopped() == False:
+            stri = ""
+            
+            for chan in self.data_channels:
+                stri = stri + "\t" + str(chan[1]())
+            #out_file.write(stri)
+            print stri
+            
+            time.sleep(self.MEAS_TIME)
+            
+
+    def clean_up(self):
         out_file.close()
 
         for inst in self.instruments:
             inst.close()
         
         if using_magnet==True:
-            self.magnet.close()
-
+            self.magnet.close()        
+        
     def auto_scale_y(self,data):
         span = max(data.max() - data.min(), 0.1 * data.min())
         return (data.min() - span *0.05), (data.max() + span*0.05)
@@ -132,18 +181,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         #output_line = output_line + str(lakeshore.read_channel(9))    
     
         return output_line
-        
-    @pyqtSignature("")
-    def on_startStopButton_clicked(self):
-        if self.running == True:
-            self.running = False
-            self.startStopButton.setText("Start")
-        else:
-            if not self.T.isAlive():            
-                self.T.start()
-            self.running = True
-            self.startStopButton.setText("Stop")           
-        print ("Click!") 
+
              
         
 if __name__ == "__main__":
