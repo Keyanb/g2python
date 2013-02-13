@@ -43,11 +43,14 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.fig.canvas.draw()              
         
          # objects to hold line data
-        line1, = self.ax.plot(0, 1, '.-b')
-        line2, = self.ax.plot(0, 0, '.-g')
-        
+
+        #line2, = self.ax.plot(0, 1, '.r',0, 0, '-g')
+        line1, = self.ax.plot(0, 1, '.r', )
+        line2, = self.ax.plot(0, 0, '-g')
+        self.ax.lines = line1, line2
+
         print self.ax.lines
-        self.lines = [DataLine(line2, 0, 2, '.'), DataLine(line1, 0, 3, '-')]       
+        self.lines = [DataLine(line1, 0, 2, '.'), DataLine(line2, 0, 3, '-')]       
         self.data_array = array([])       
     
 
@@ -60,9 +63,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.data_array = vstack([self.data_array, data_set])
 
         for line in self.lines:
-            print line.y_chan
-            
             line.line.set_data(self.data_array[:,line.x_chan], self.data_array[:,line.y_chan])
+        
         self.ax.relim()
         self.ax.autoscale_view()
         self.fig.canvas.draw()
@@ -99,7 +101,6 @@ class DataLine():
 
 class DataTaker(QThread):
     MEAS_TIME = 3      
-    DEBUG = False     
     USING_MAGNET = True 
     
     def __init__(self, lock, parent=None):
@@ -109,8 +110,9 @@ class DataTaker(QThread):
         self.mutex = QMutex()
         self.path = None
         self.completed = False
+        self.DEBUG = readconfigfile.get_debug_setting()
 
-    def initialize(self, ):
+    def initialize(self, ):     
         self.stopped = True
         self.completed = False     
         self.t_start = time.time()
@@ -135,8 +137,6 @@ class DataTaker(QThread):
         for chan in self.data_channels:        
             self.out_file.write(chan[0] + ", ")
         self.out_file.write('\n')
-        
-
         
     def run(self):
         self.stopped = False
