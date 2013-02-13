@@ -32,21 +32,44 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
 
         self.lock = QReadWriteLock()         
         self.datataker = DataTaker(self.lock, self)  
+        self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"),
+                     self.displaydata)
 
+        # axes and figure initialization
         self.ax = self.mplwidget.axes
         self.fig = self.mplwidget.figure
-        self.line = []
-        
-        #for idx, chan in enumerate(self.data_channels):
-        #    tline, = self.ax.plot(0, 0, '.-')
-        #    self.line.append(tline)          
-            
         self.ax.tick_params(axis='x', labelsize=8)
         self.ax.tick_params(axis='y', labelsize=8)
-        self.fig.canvas.draw()          
+        self.fig.canvas.draw()              
+        
+        # objects to hold line data
+        line1, = self.ax.plot(0, 0, '.-b')
+        line2, = self.ax.plot(0, 0, '.-g')
+        self.lines = [DataLine(line1, 0, 2, '.'), DataLine(line2, 0, 3, '-')]       
+        self.data_array = array([])        
 
-                     
-                     
+    
+
+    def displaydata(self, data_set):  
+        
+        if self.data_array.size == 0:
+            self.data_array = data_set
+            data_set.shape = [1, data_set.size]
+        else:            
+            self.data_array = vstack([self.data_array, data_set])
+
+        for line in self.lines:
+            line.line.set_data(self.data_array[:,line.x_chan], self.data_array[:,line.y_chan])
+        self.ax.relim()
+        self.ax.autoscale_view()
+        self.fig.canvas.draw()
+
+        
+    def auto_scale_y(self,data):
+        span = max(data.max() - data.min(), 0.1 * data.min())
+        return (data.min() - span *0.05), (data.max() + span*0.05)
+
+                 
     @pyqtSignature("")
     def on_startStopButton_clicked(self):
         if self.datataker.isStopped():      
@@ -60,6 +83,14 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.startStopButton.setText("Start")
             print ("data taker stopped") 
 
+class DataLine():
+
+    def __init__(self, line, x_chan = 0, y_chan = 1, fmt = '.'):
+        self.x_chan = x_chan
+        self.y_chan = y_chan
+        self.fmt = fmt
+        self.line = line
+        
 
 class DataTaker(QThread):
     MEAS_TIME = 3      
@@ -93,19 +124,18 @@ class DataTaker(QThread):
         self.data_channels.append(['Y', lambda: self.instruments['GPIB::8'].read_input(2), []])
              
         #open file, write header
-        out_file = readconfigfile.open_data_file()
+        self.out_file = readconfigfile.open_data_file()
 
-        out_file.write('Starting time: ' + str(self.t_start) + '\n')
+        self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
         for chan in self.data_channels:        
-            out_file.write(chan[0] + ", ")
-        out_file.write('\n')
+            self.out_file.write(chan[0] + ", ")
+        self.out_file.write('\n')
         
 
         
     def run(self):
         self.stopped = False
         self.main_loop()
-        print ("yay")
         self.stop()
         self.emit(SIGNAL("finished(bool)"), self.completed)        
         
@@ -128,59 +158,23 @@ class DataTaker(QThread):
         print ("entered main loop")
         t_start = time.time()
         while self.isStopped() == False:
-            stri = ""
-            
+            data_set = []
             for chan in self.data_channels:
-                stri = stri + "\t" + str(chan[1]())
-            #out_file.write(stri)
+                data_set.append(chan[1]())
+            stri = str(data_set).strip('[]')
             print stri
-            
-            time.sleep(self.MEAS_TIME)
-            
+            self.out_file.write(stri + '\n')
+            self.emit(SIGNAL("data(PyQt_PyObject)"), array(data_set))              
+            time.sleep(self.MEAS_TIME)            
 
     def clean_up(self):
-        out_file.close()
+        self.out_file.close()
 
         for inst in self.instruments:
             inst.close()
         
         if using_magnet==True:
             self.magnet.close()        
-        
-    def auto_scale_y(self,data):
-        span = max(data.max() - data.min(), 0.1 * data.min())
-        return (data.min() - span *0.05), (data.max() + span*0.05)
-    
-    def read_data(self, t_start, using_magnet):
-        output_line = ""
-        t_current= time.time() - t_start
-    
-        if using_magnet==True:
-            current_field = self.magnet.read_field()
-            output_line = output_line + "%.5f"%current_field
-            self.fields = append(self.fields, current_field)
-            
-        #read 3 lock-ins
-        for idx, chan in enumerate(self.data_channels):
-            if chan[1] <5:
-                dat = self.instruments[chan[0]].read_input(chan[1])
-            else:
-                dat = self.instruments[chan[0]].read_aux(chan[1]-4)
-            
-            output_line = output_line + ', %.6e'%dat
-            
-            chan[3] = append(chan[3],dat)
-                     
-            self.line[idx].set_data(arange(chan[3].size), chan[3])
-    
-            y1, y2 = self.auto_scale_y(chan[3])
-            self.ax.set_ylim(ymin = y1, ymax = y2)
-            self.ax.set_xlim(xmin=0, xmax = chan[3].size-1)
-        self.fig.canvas.draw()
-                     
-        #output_line = output_line + str(lakeshore.read_channel(9))    
-    
-        return output_line
 
              
         
