@@ -8,7 +8,7 @@ class IPS120:
         self.read_only = read_only
         
         if self.debug == False:
-            self.ips = visa.instrument(name, term_chars = CR)
+            self.ips = visa.instrument(name, term_chars = visa.CR)
             if self.read_only == False:
                 self.set_extended()
             
@@ -58,7 +58,7 @@ class IPS120:
 
     def set_extended (self):
         if self.debug == False:      
-            return self.ips.ask ('@0Q4\r')
+            return self.ips.write ('@0Q4\r')
 
     def close(self):   
         if self.debug == False:

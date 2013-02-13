@@ -42,12 +42,13 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.ax.tick_params(axis='y', labelsize=8)
         self.fig.canvas.draw()              
         
-        # objects to hold line data
-        line1, = self.ax.plot(0, 0, '.-b')
+         # objects to hold line data
+        line1, = self.ax.plot(0, 1, '.-b')
         line2, = self.ax.plot(0, 0, '.-g')
-        self.lines = [DataLine(line1, 0, 2, '.'), DataLine(line2, 0, 3, '-')]       
-        self.data_array = array([])        
-
+        
+        print self.ax.lines
+        self.lines = [DataLine(line2, 0, 2, '.'), DataLine(line1, 0, 3, '-')]       
+        self.data_array = array([])       
     
 
     def displaydata(self, data_set):  
@@ -59,6 +60,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.data_array = vstack([self.data_array, data_set])
 
         for line in self.lines:
+            print line.y_chan
+            
             line.line.set_data(self.data_array[:,line.x_chan], self.data_array[:,line.y_chan])
         self.ax.relim()
         self.ax.autoscale_view()
@@ -73,7 +76,10 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     @pyqtSignature("")
     def on_startStopButton_clicked(self):
         if self.datataker.isStopped():      
-            self.datataker.initialize()            
+            self.datataker.initialize() 
+            
+ 
+           
             self.datataker.start()
             
             self.startStopButton.setText("Stop")
@@ -84,7 +90,6 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             print ("data taker stopped") 
 
 class DataLine():
-
     def __init__(self, line, x_chan = 0, y_chan = 1, fmt = '.'):
         self.x_chan = x_chan
         self.y_chan = y_chan
@@ -94,7 +99,7 @@ class DataLine():
 
 class DataTaker(QThread):
     MEAS_TIME = 3      
-    DEBUG = True       
+    DEBUG = False     
     USING_MAGNET = True 
     
     def __init__(self, lock, parent=None):
@@ -118,7 +123,7 @@ class DataTaker(QThread):
         
         self.data_channels.append(['TIME', lambda: time.time() - self.t_start, []])
         if self.USING_MAGNET==True:
-            self.magnet = IPS120.IPS120('GPIB::26', debug=self.DEBUG)
+            self.magnet = IPS120.IPS120('GPIB::3', debug=self.DEBUG)
             self.data_channels.append(['FIELD', lambda:self.magnet.read_field(), []])
         self.data_channels.append(['X', lambda: self.instruments['GPIB::8'].read_input(1), []])
         self.data_channels.append(['Y', lambda: self.instruments['GPIB::8'].read_input(2), []])
