@@ -80,7 +80,10 @@ def get_debug_setting():
     for line in config_file:
         [left,right] = line.split("=")
         if left.strip() == "DEBUG":
-             setting = bool(right.strip())
+             if right.strip()=='False':
+                 setting = False
+             else:
+                 setting = True
              print "debug: " + str(setting)
              config_file.close()         
              return setting

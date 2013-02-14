@@ -45,7 +45,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
          # objects to hold line data
 
         #line2, = self.ax.plot(0, 1, '.r',0, 0, '-g')
-        line1, = self.ax.plot(0, 1, '.r', )
+        line1, = self.ax.plot(0, 1, '-b', )
         line2, = self.ax.plot(0, 0, '-g')
         self.ax.lines = line1, line2
 
@@ -100,7 +100,7 @@ class DataLine():
         
 
 class DataTaker(QThread):
-    MEAS_TIME = 3      
+    MEAS_TIME = 1      
     USING_MAGNET = True 
     
     def __init__(self, lock, parent=None):
@@ -113,6 +113,7 @@ class DataTaker(QThread):
         self.DEBUG = readconfigfile.get_debug_setting()
 
     def initialize(self, ):     
+        print self.DEBUG
         self.stopped = True
         self.completed = False     
         self.t_start = time.time()
