@@ -14,7 +14,7 @@ class device:
         dac488 = self.name
         dac488.write('*RX')
         time.sleep(2)
-        print dac488.ask('*IDN?')
+
         
     def set_range(self,port,vrange):
         dac488 = self.name

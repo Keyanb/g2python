@@ -2,7 +2,7 @@
 from visa import *
 import string, os, sys, time  
       
-class device:  
+class SRS830:  
     def __init__(self, name, debug = False):  
         self.name = name
         self.debug = debug
