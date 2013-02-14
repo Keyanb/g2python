@@ -9,6 +9,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import ui_recordsweep
+
 import LS370, HP4263B, MKS
 import time
 import threading
@@ -26,14 +27,17 @@ except AttributeError:
     _fromUtf8 = lambda s: s
 
 class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
+    MAX_CHANNELS = 6
+    
     def __init__(self, parent=None):
         super(RecordSweepWindow, self).__init__()
         self.setupUi(self)
-
+        self.customizeUi()
+        
         self.lock = QReadWriteLock()         
         self.datataker = DataTaker(self.lock, self)  
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"),
-                     self.displaydata)
+                     self.updateData)
 
         # axes and figure initialization
         self.ax = self.mplwidget.axes
@@ -43,28 +47,67 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.fig.canvas.draw()              
         
          # objects to hold line data
-
-        #line2, = self.ax.plot(0, 1, '.r',0, 0, '-g')
-        line1, = self.ax.plot(0, 1, '.r', )
-        line2, = self.ax.plot(0, 0, '-g')
-        self.ax.lines = line1, line2
+        #line1, = self.ax.plot(0, 1, '.r', )
+        #line2, = self.ax.plot(0, 0, '-g')
+        line_set = []
+        for i in range (self.MAX_CHANNELS):            
+            line1, = self.ax.plot(0, 1, '.r', )
+            line_set.append(line1)
+        
+        self.ax.lines = line_set
 
         print self.ax.lines
-        self.lines = [DataLine(line1, 0, 2, '.'), DataLine(line2, 0, 3, '-')]       
-        self.data_array = array([])       
-    
-
-    def displaydata(self, data_set):  
+        #self.lines = [DataLine(line1, 0, 2, '.'), DataLine(line2, 0, 3, '-')]
         
+        self.data_array = array([])       
+        self.chan_X = 0
+        
+    def customizeUi(self):
+        
+        self.radioButton_X = [] 
+        
+        for i in range (self.MAX_CHANNELS):                       
+            self.radioButton_X.append(QRadioButton(self.groupBox_X))
+            self.radioButton_X[i].setGeometry(QRect(10, 20*(i+1), 16, 16))
+            self.radioButton_X[i].setText(_fromUtf8(""))
+            self.radioButton_X[i].setObjectName(_fromUtf8("radioButton_" + str(i)))
+            self.connect(self.radioButton_X[i], SIGNAL("toggled(bool)"), self.XRadioButtonHandler)       
+
+        
+        self.checkBox_Y = []
+        
+        for i in range (self.MAX_CHANNELS):          
+            self.checkBox_Y.append(QCheckBox(self.groupBox_Y))
+            self.checkBox_Y[i].setGeometry(QRect(10, 20 * (i+1), 16, 16))
+            self.checkBox_Y[i].setText(_fromUtf8(""))
+            self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
+            self.connect(self.checkBox_Y[i], SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)       
+
+    def XRadioButtonHandler(self):
+        for num, box in enumerate(self.radioButton_X):
+            if box.isChecked():
+                self.chan_X = num
+        self.updatePlot() 
+        
+    def YCheckBoxHandler(self):        
+        for box in self.checkBox_Y:
+            print box.isChecked()
+        self.updatePlot()      
+ 
+    def updateData(self, data_set):        
         if self.data_array.size == 0:
             self.data_array = data_set
             data_set.shape = [1, data_set.size]
         else:            
             self.data_array = vstack([self.data_array, data_set])
+        self.updatePlot()
 
-        for line in self.lines:
-            line.line.set_data(self.data_array[:,line.x_chan], self.data_array[:,line.y_chan])
-        
+    def updatePlot(self): 
+        for chan_Y, line in enumerate(self.ax.lines):
+            if self.checkBox_Y[chan_Y].isChecked():
+                line.set_data(self.data_array[:,self.chan_X], self.data_array[:, chan_Y])
+            else:
+                line.set_data([],[])
         self.ax.relim()
         self.ax.autoscale_view()
         self.fig.canvas.draw()
@@ -77,6 +120,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                  
     @pyqtSignature("")
     def on_startStopButton_clicked(self):
+
         if self.datataker.isStopped():      
             self.datataker.initialize() 
             

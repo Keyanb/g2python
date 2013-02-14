@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'recordsweep.ui'
 #
-# Created: Tue Feb 12 11:30:46 2013
+# Created: Thu Feb 14 12:13:12 2013
 #      by: PyQt4 UI code generator 4.8.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -28,18 +28,21 @@ class Ui_RecordSweepWindow(object):
         self.startStopButton.setGeometry(QtCore.QRect(700, 10, 75, 23))
         self.startStopButton.setText(QtGui.QApplication.translate("RecordSweepWindow", "Start", None, QtGui.QApplication.UnicodeUTF8))
         self.startStopButton.setObjectName(_fromUtf8("startStopButton"))
-        self.scrollArea = QtGui.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(710, 140, 181, 211))
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
-        self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 179, 209))
-        self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
-        self.radioButton = QtGui.QRadioButton(self.scrollAreaWidgetContents)
-        self.radioButton.setGeometry(QtCore.QRect(10, 10, 82, 17))
-        self.radioButton.setText(QtGui.QApplication.translate("RecordSweepWindow", "RadioButton", None, QtGui.QApplication.UnicodeUTF8))
-        self.radioButton.setObjectName(_fromUtf8("radioButton"))
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        
+        self.groupBox_Y = QtGui.QGroupBox(self.centralwidget)
+        self.groupBox_Y.setGeometry(QtCore.QRect(730, 360, 31, 191))
+        self.groupBox_Y.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Y.setObjectName(_fromUtf8("groupBox_Y"))
+      
+        
+        self.groupBox_X = QtGui.QGroupBox(self.centralwidget)
+        self.groupBox_X.setGeometry(QtCore.QRect(700, 360, 31, 191))
+        self.groupBox_X.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_X.setObjectName(_fromUtf8("groupBox_X"))
+        
+
+            
+            
         RecordSweepWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(RecordSweepWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 966, 21))
