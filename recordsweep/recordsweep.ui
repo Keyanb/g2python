@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>966</width>
+    <width>1035</width>
     <height>600</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>691</width>
+      <width>641</width>
       <height>571</height>
      </rect>
     </property>
@@ -37,60 +37,11 @@
      <string>Start</string>
     </property>
    </widget>
-   <widget class="QScrollArea" name="scrollArea">
-    <property name="geometry">
-     <rect>
-      <x>710</x>
-      <y>140</y>
-      <width>181</width>
-      <height>211</height>
-     </rect>
-    </property>
-    <property name="widgetResizable">
-     <bool>true</bool>
-    </property>
-    <widget class="QWidget" name="scrollAreaWidgetContents">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>179</width>
-       <height>209</height>
-      </rect>
-     </property>
-     <widget class="QRadioButton" name="radioButton">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>82</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Button 1</string>
-      </property>
-     </widget>
-     <widget class="QRadioButton" name="radioButton_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>82</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Button 2</string>
-      </property>
-     </widget>
-    </widget>
-   </widget>
    <widget class="QGroupBox" name="groupBox_Y">
     <property name="geometry">
      <rect>
-      <x>730</x>
-      <y>360</y>
+      <x>940</x>
+      <y>80</y>
       <width>31</width>
       <height>191</height>
      </rect>
@@ -98,25 +49,12 @@
     <property name="title">
      <string>Y</string>
     </property>
-    <widget class="QCheckBox" name="checkBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>16</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_X">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>360</y>
+      <x>910</x>
+      <y>80</y>
       <width>31</width>
       <height>191</height>
      </rect>
@@ -124,19 +62,45 @@
     <property name="title">
      <string>X</string>
     </property>
-    <widget class="QRadioButton" name="radioButton_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>16</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_Type">
+    <property name="geometry">
+     <rect>
+      <x>730</x>
+      <y>80</y>
+      <width>101</width>
+      <height>191</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Type</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_Name">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>80</y>
+      <width>81</width>
+      <height>191</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Channel Name</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_Instr">
+    <property name="geometry">
+     <rect>
+      <x>830</x>
+      <y>80</y>
+      <width>81</width>
+      <height>191</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Instrument</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -144,7 +108,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>966</width>
+     <width>1035</width>
      <height>21</height>
     </rect>
    </property>
