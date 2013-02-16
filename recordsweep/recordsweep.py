@@ -54,6 +54,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.ax.tick_params(axis='y', labelsize=8)
         self.fig.canvas.draw()              
         
+        self.history_length = 0
+        
          # objects to hold line data
         line_set = []
         fmt_str = ['b','g','r','k','c','m']
@@ -63,9 +65,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             line_set.append(line1)
         
         self.ax.lines = line_set
- 
 
-        
+   
         try:
             self.AVAILABLE_PORTS = visa.get_instruments_list()
         except visa.VisaIOError as e:
@@ -79,6 +80,13 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
 
         self.customizeUi()
         self.load_settings()
+        
+        self.statusbar.showMessage("Program loaded")
+        self.plotMenu = self.menuBar().addMenu("&Plot")
+        self.plotMenu.addAction("Quick Save Figure", self.savefigure)
+        
+    def savefigure(self):
+        self.fig.savefig("test.pdf")
         
     def customizeUi(self):
 
@@ -99,19 +107,19 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.lineEdit_Name[i].setObjectName(_fromUtf8("lineEdit_Name"))
             
             self.comboBox_Type.append(QtGui.QComboBox(self.groupBox_Type))
-            self.comboBox_Type[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 81, 16))
+            self.comboBox_Type[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 61, 16))
             self.comboBox_Type[i].setObjectName(_fromUtf8("comboBox"))
             self.comboBox_Type[i].addItems(self.INSTRUMENT_TYPES)
             
             self.connect(self.comboBox_Type[i], SIGNAL("currentIndexChanged(int)"), self.ComboBoxTypeHandler)                  
 
             self.comboBox_Instr.append(QtGui.QComboBox(self.groupBox_Instr))
-            self.comboBox_Instr[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 81, 16))
+            self.comboBox_Instr[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 61, 16))
             self.comboBox_Instr[i].setObjectName(_fromUtf8("comboBox"))
             self.comboBox_Instr[i].addItems(self.AVAILABLE_PORTS)
             
             self.comboBox_Param.append(QtGui.QComboBox(self.groupBox_Param))
-            self.comboBox_Param[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 81, 16))
+            self.comboBox_Param[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 61, 16))
             self.comboBox_Param[i].setObjectName(_fromUtf8("comboBox"))
 
             self.radioButton_X.append(QRadioButton(self.groupBox_X))
@@ -126,12 +134,6 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
             self.connect(self.checkBox_Y[i], SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)       
 
-
-
-            
-        self.radioButton_X[0].setChecked(True)  
-        self.checkBox_Y[2].setChecked(True)
-        self.checkBox_Y[3].setChecked(True)
     
     def load_settings(self):
         settings_file = open("default_settings.txt")
@@ -198,7 +200,11 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 paramBox.clear()
                 paramBox.addItems(self.AVAILABLE_PARAMS[str(text)])
                     
-    def updateData(self, data_set):        
+    def updateData(self, data_set): 
+        stri = str(data_set).strip('[]')           
+        print stri
+        self.out_file.write(stri + '\n')        
+        
         if self.data_array.size == 0:
             self.data_array = data_set
             data_set.shape = [1, data_set.size]
@@ -207,11 +213,16 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.updatePlot()
 
     def updatePlot(self): 
+        first = 0
+        if self.history_length:
+            first = max(0, self.data_array.shape[0] - self.history_length)
+            
         for chan_Y, line in enumerate(self.ax.lines):
             if self.checkBox_Y[chan_Y].isChecked() and self.data_array.size > 0:
-                line.set_data(self.data_array[:,self.chan_X], self.data_array[:, chan_Y])
+                line.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])
             else:
                 line.set_data([],[])
+                
         self.ax.relim()
         self.ax.autoscale_view()
         self.fig.canvas.draw()
@@ -226,29 +237,34 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     def on_startStopButton_clicked(self):
 
         if self.datataker.isStopped():    
+            
+            #open file, write header
+            self.out_file = readconfigfile.open_data_file()
+            self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
+        
             name_list = []
             for lineEdit in self.lineEdit_Name:
                 lineEdit.setReadOnly(True)
                 name_list.append(str(lineEdit.text()))
                 
+            stri = str(data_set).strip('[]')           
+            print stri
+            self.out_file.write(stri + '\n')  
+            
             type_list = self.getComboBoxData(self.comboBox_Type)
             dev_list = self.getComboBoxData(self.comboBox_Instr)   
             param_list = self.getComboBoxData(self.comboBox_Param)
-            print name_list
-            print type_list
-            print dev_list
-            print param_list
+
             self.tabWidget.setCurrentIndex(1)
             
             self.datataker.initialize(name_list, type_list, dev_list, param_list) 
             self.datataker.start()
             
-            self.startStopButton.setText("Stop")
-            print ("data taker started")             
+            self.startStopButton.setText("Stop")          
         else:
             self.datataker.stop()
+            self.out_file.close()
             self.startStopButton.setText("Start")
-            print ("data taker stopped") 
 
     def getComboBoxData(self, comboBox_List):
         stri_list = []
@@ -276,12 +292,10 @@ class DataTaker(QThread):
         self.lock = lock
         self.stopped = True
         self.mutex = QMutex()
-        self.path = None
         self.completed = False
         self.DEBUG = readconfigfile.get_debug_setting()
 
     def initialize(self, name_list, type_list, dev_list, param_list):     
-        print self.DEBUG
         self.stopped = True
         self.completed = False     
         self.t_start = time.time()
@@ -291,45 +305,40 @@ class DataTaker(QThread):
         self.data_channels = []        
         self.instruments = {}
         self.instrument_types = {}
-        
+
         for name, instr_type, dev, param in zip(name_list, type_list, dev_list, param_list):
-            # add instrument to list if not there
-            if not dev in self.instruments:
-                if instr_type == 'SRS830':               
-                    self.instruments[dev] = SRS830.SRS830(dev, debug=self.DEBUG)
+            if name:
+                # add instrument to list if not there
+                if not dev in self.instruments:
+                    if instr_type == 'SRS830':               
+                        self.instruments[dev] = SRS830.SRS830(dev, debug=self.DEBUG)
+                    elif instr_type == 'IPS120':
+                        self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)    
+                    self.instrument_types[dev] = instr_type
+                else:
+                    if instr_type != self.instrument_types[dev]:
+                        print ("Same GPIB port specified for different instruments! ")
+                        print (dev + " " + instr_type + " " + self.instrument_types[dev])
+                        instr_type = 'NONE'
+                        
+    
+                if instr_type == 'TIME':
+                    command = lambda: time.time() - self.t_start
                 elif instr_type == 'IPS120':
-                    self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)    
-                self.instrument_types[dev] = instr_type
-            else:
-                if instr_type != self.instrument_types[dev]:
-                    print ("Same GPIB port specified for different instruments!")
-                    instr_type = 'NONE'
-                    
-
-            if instr_type == 'TIME':
-                command = lambda: time.time() - self.t_start
-            elif instr_type == 'IPS120':
-                if param == 'FIELD':
-                    command = lambda d=dev: self.instruments[d].read_field()
-            elif instr_type == 'SRS830':
-                if param =='X':
-                    command = lambda d=dev: self.instruments[d].read_input(1)
-                elif param =='Y':
-                    command = lambda d=dev: self.instruments[d].read_input(2)
-                elif param =='R':
-                    command = lambda d=dev: self.instruments[d].read_input(3)    
-                elif param =='PHASE':
-                    command = lambda d=dev: self.instruments[d].read_input(4)    
+                    if param == 'FIELD':
+                        command = lambda d=dev: self.instruments[d].read_field()
+                elif instr_type == 'SRS830':
+                    if param =='X':
+                        command = lambda d=dev: self.instruments[d].read_input(1)
+                    elif param =='Y':
+                        command = lambda d=dev: self.instruments[d].read_input(2)
+                    elif param =='R':
+                        command = lambda d=dev: self.instruments[d].read_input(3)    
+                    elif param =='PHASE':
+                        command = lambda d=dev: self.instruments[d].read_input(4)    
                      
-            self.data_channels.append([name, command,[]])
- 
-        #open file, write header
-        self.out_file = readconfigfile.open_data_file()
+            self.data_channels.append(command)
 
-        self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
-        for chan in self.data_channels:        
-            self.out_file.write(chan[0] + ", ")
-        self.out_file.write('\n')
         
     def run(self):
         self.stopped = False
@@ -353,15 +362,8 @@ class DataTaker(QThread):
             self.mutex.unlock()    
     
     def main_loop(self):
-        print ("entered main loop")
-        t_start = time.time()
         while self.isStopped() == False:
-            data_set = []
-            for chan in self.data_channels:
-                data_set.append(chan[1]())
-            stri = str(data_set).strip('[]')
-            print stri
-            self.out_file.write(stri + '\n')
+            data_set = [command() for command in self.data_channels]            
             self.emit(SIGNAL("data(PyQt_PyObject)"), array(data_set))              
             time.sleep(self.MEAS_TIME)            
 
@@ -378,8 +380,5 @@ if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
     form = RecordSweepWindow()
-    #form.connect(form, SIGNAL("found"), found)
-    #form.connect(form, SIGNAL("notfound"), nomore)
-    #form.plot([0,1,2,3,4], [0,1,2,3,])
     form.show()
     app.exec_()
