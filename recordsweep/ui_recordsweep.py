@@ -8,6 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from mplZoomWidget import MatplotlibZoomWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -23,7 +24,7 @@ class Ui_RecordSweepWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.gridLayout = QtGui.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.mplwidget = MatplotlibWidget(self.centralwidget)
+        self.mplwidget = MatplotlibZoomWidget(self.centralwidget)
         self.mplwidget.setObjectName(_fromUtf8("mplwidget"))
         self.gridLayout.addWidget(self.mplwidget, 0, 0, 2, 1)
         self.startStopButton = QtGui.QPushButton(self.centralwidget)

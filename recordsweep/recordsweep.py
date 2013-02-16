@@ -37,6 +37,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     AVAILABLE_PARAMS['IPS120'] = ['FIELD']
     AVAILABLE_PARAMS['SRS830'] = ['X', 'Y', 'R', 'Phase', 'AUX_1', 'AUX_2', 'AUX_3', 'AUX_4']    
     
+    UNITS = {'FIELD': 'T', 'X': 'V', 'Y': 'V', 'R': 'V', 'PHASE': 'degrees'}    
+    
     def __init__(self, parent=None):
         super(RecordSweepWindow, self).__init__()
         self.setupUi(self)
@@ -84,6 +86,14 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.statusbar.showMessage("Program loaded")
         self.plotMenu = self.menuBar().addMenu("&Plot")
         self.plotMenu.addAction("Quick Save Figure", self.savefigure)
+        
+        self.connect (self.mplwidget, SIGNAL("mousePressed(PyQt_PyObject)"), self.panPlot)
+        
+    def panPlot(self, coords):
+
+        inv = self.ax.transData.inverted()
+        
+        self.statusbar.showMessage(str (inv.transform(coords)))
         
     def savefigure(self):
         self.fig.savefig("test.pdf")
@@ -164,8 +174,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                     if param in self.AVAILABLE_PARAMS[instr_type]:
                         
                         self.comboBox_Param[idx].setCurrentIndex(self.comboBox_Param[idx].findText(param))
-
-                        
+                       
             self.radioButton_X[idx].setChecked (settings[4].strip().upper() == "TRUE")
             self.checkBox_Y[idx].setChecked (settings[5].strip().upper() == "TRUE")
             
@@ -224,13 +233,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 line.set_data([],[])
                 
         self.ax.relim()
-        self.ax.autoscale_view()
+        self.ax.autoscale_view()                      
         self.fig.canvas.draw()
-
-        
-    def auto_scale_y(self,data):
-        span = max(data.max() - data.min(), 0.1 * data.min())
-        return (data.min() - span *0.05), (data.max() + span*0.05)
 
                  
     @pyqtSignature("")
@@ -251,9 +255,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             print stri
             self.out_file.write(stri + '\n')  
             
-            type_list = self.getComboBoxData(self.comboBox_Type)
-            dev_list = self.getComboBoxData(self.comboBox_Instr)   
-            param_list = self.getComboBoxData(self.comboBox_Param)
+            type_list = [comboBox.currentText() for comboBox in comboBox_Type]
+            dev_list = [comboBox.currentText() for comboBox in comboBox_Instr] 
+            param_list = [comboBox.currentText() for comboBox in comboBox_Param]
 
             self.tabWidget.setCurrentIndex(1)
             
@@ -264,23 +268,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         else:
             self.datataker.stop()
             self.out_file.close()
-            self.startStopButton.setText("Start")
-
-    def getComboBoxData(self, comboBox_List):
-        stri_list = []
-        for comboBox in comboBox_List:
-            text = comboBox.currentText()
-            stri_list.append(str(text))
-            #comboBox.clear()
-            #comboBox.addItem(text)
-        return stri_list   
-
-class DataLine():
-    def __init__(self, line, x_chan = 0, y_chan = 1, fmt = '.'):
-        self.x_chan = x_chan
-        self.y_chan = y_chan
-        self.fmt = fmt
-        self.line = line
+            self.startStopButton.setText("Start")   
         
 
 class DataTaker(QThread):
@@ -299,8 +287,7 @@ class DataTaker(QThread):
         self.stopped = True
         self.completed = False     
         self.t_start = time.time()
-        #instrumentation setup - store instrument objects in a dictionary by address
-        
+   
         # tuple: lockin #, channel, subplot for display
         self.data_channels = []        
         self.instruments = {}
