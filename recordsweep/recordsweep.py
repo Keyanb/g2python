@@ -237,7 +237,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     def on_startStopButton_clicked(self):
 
         if self.datataker.isStopped():    
-            self.t_start = time.time()
+            
             #open file, write header
             self.out_file = readconfigfile.open_data_file()
             self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
@@ -247,7 +247,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 lineEdit.setReadOnly(True)
                 name_list.append(str(lineEdit.text()))
                 
-            stri = str(name_list).strip('[]')           
+            stri = str(data_set).strip('[]')           
             print stri
             self.out_file.write(stri + '\n')  
             
@@ -257,7 +257,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
 
             self.tabWidget.setCurrentIndex(1)
             
-            self.datataker.initialize(self.t_start, name_list, type_list, dev_list, param_list) 
+            self.datataker.initialize(name_list, type_list, dev_list, param_list) 
             self.datataker.start()
             
             self.startStopButton.setText("Stop")          
@@ -295,11 +295,12 @@ class DataTaker(QThread):
         self.completed = False
         self.DEBUG = readconfigfile.get_debug_setting()
 
-    def initialize(self, t_start, name_list, type_list, dev_list, param_list):     
+    def initialize(self, name_list, type_list, dev_list, param_list):     
         self.stopped = True
         self.completed = False     
+        self.t_start = time.time()
         #instrumentation setup - store instrument objects in a dictionary by address
-        self.t_start = t_start
+        
         # tuple: lockin #, channel, subplot for display
         self.data_channels = []        
         self.instruments = {}
@@ -335,8 +336,7 @@ class DataTaker(QThread):
                         command = lambda d=dev: self.instruments[d].read_input(3)    
                     elif param =='PHASE':
                         command = lambda d=dev: self.instruments[d].read_input(4)    
-            else:
-               command = lambda : 0         
+                     
             self.data_channels.append(command)
 
         
@@ -368,13 +368,8 @@ class DataTaker(QThread):
             time.sleep(self.MEAS_TIME)            
 
     def clean_up(self):
-        self.out_file.close()
-
         for inst in self.instruments:
-            inst.close()
-        
-        if using_magnet==True:
-            self.magnet.close()        
+            inst.close()      
 
 if __name__ == "__main__":
     import sys
