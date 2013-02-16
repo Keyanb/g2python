@@ -241,7 +241,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     def on_startStopButton_clicked(self):
 
         if self.datataker.isStopped():    
-            
+            self.t_start = time.time()
             #open file, write header
             self.out_file = readconfigfile.open_data_file()
             self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
@@ -251,13 +251,13 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 lineEdit.setReadOnly(True)
                 name_list.append(str(lineEdit.text()))
                 
-            stri = str(data_set).strip('[]')           
+            stri = str(name_list).strip('[]')           
             print stri
             self.out_file.write(stri + '\n')  
             
-            type_list = [comboBox.currentText() for comboBox in comboBox_Type]
-            dev_list = [comboBox.currentText() for comboBox in comboBox_Instr] 
-            param_list = [comboBox.currentText() for comboBox in comboBox_Param]
+            type_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Type]
+            dev_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Instr] 
+            param_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Param]
 
             self.tabWidget.setCurrentIndex(1)
             
