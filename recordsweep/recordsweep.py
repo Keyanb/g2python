@@ -76,8 +76,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 print "GPIB does not seem to be connected"
             self.AVAILABLE_PORTS = ["GPIB::8", "GPIB::9", "GPIB::26"]
             
-        self.data_array = array([])#zeros(self.MAX_CHANNELS)
-        #self.data_array.shape = [1,self.MAX_CHANNELS]
+        self.data_array = array([])
         self.chan_X = 0
 
         self.customizeUi()
@@ -241,7 +240,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     def on_startStopButton_clicked(self):
 
         if self.datataker.isStopped():    
-            self.t_start = time.time()
+            self.t_start = time.time()            
             #open file, write header
             self.out_file = readconfigfile.open_data_file()
             self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
@@ -255,9 +254,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             print stri
             self.out_file.write(stri + '\n')  
             
-            type_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Type]
-            dev_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Instr] 
-            param_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Param]
+            type_list = [comboBox.currentText() for comboBox in self.comboBox_Type]
+            dev_list = [comboBox.currentText() for comboBox in self.comboBox_Instr] 
+            param_list = [comboBox.currentText() for comboBox in self.comboBox_Param]
 
             self.tabWidget.setCurrentIndex(1)
             
