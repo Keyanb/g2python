@@ -142,7 +142,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.checkBox_Y[i].setText(_fromUtf8(""))
             self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
             self.connect(self.checkBox_Y[i], SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)       
-
+        self.tabWidget.setCurrentIndex(0)
     
     def load_settings(self):
         settings_file = open("default_settings.txt")

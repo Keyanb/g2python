@@ -14,8 +14,6 @@ class MatplotlibZoomWidget(MatplotlibWidget):
         self.__mousePressPos = None
         self.__mouseMovePos = None
         if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
             self.__mousePressX = event.x()
             self.__mousePressY = event.y()
             self.__startingXLim = self.axes.get_xlim()
@@ -37,8 +35,6 @@ class MatplotlibZoomWidget(MatplotlibWidget):
 
     def mouseReleaseEvent(self, event):
         #if self.__mousePressPos is not None:
-
-
         super(MatplotlibZoomWidget, self).mouseReleaseEvent(event)
         
     def wheelEvent(self, event):
