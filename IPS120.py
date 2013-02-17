@@ -5,10 +5,12 @@ import visa
 class IPS120:  
     def __init__(self, name, debug=False, read_only = False):
         self.debug = debug
+
         self.read_only = read_only
         
         if self.debug == False:
             self.ips = visa.instrument(name, term_chars = visa.CR)
+
             if self.read_only == False:
                 self.set_extended()
             
