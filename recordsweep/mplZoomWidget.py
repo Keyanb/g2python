@@ -11,8 +11,6 @@ from matplotlibwidget import MatplotlibWidget
 class MatplotlibZoomWidget(MatplotlibWidget):
 
     def mousePressEvent(self, event):
-        self.__mousePressPos = None
-        self.__mouseMovePos = None
         if event.button() == QtCore.Qt.LeftButton:
             self.__mousePressX = event.x()
             self.__mousePressY = event.y()

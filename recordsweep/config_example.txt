@@ -1,0 +1,4 @@
+COOLDOWN=TEST
+SAMPLE=NONE
+DATA_PATH=C:\Users\Ben\Code\Scratch\
+DEBUG=True
