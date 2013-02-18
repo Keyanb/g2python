@@ -7,22 +7,22 @@ Created on Mon Sep 24 12:41:25 2012
 import time
 import SRS830
 import DAC488
-import ls340
+import LS340
 import os, errno
-import plot
-import keithley
+from conductance_calculator import twopointcond
 
-stepTime = 0.3
+stepTime = 0.5
 max_gate = -2.2
-stepsize = 0.01
+stepsize = 0.005
 windowlower = -1.5
 windowupper = -2.0
-windowstep = 0.01
+windowstep = 0.005
 gateVoltage = 0.0
 
+overwrite_previous = True
 
-sample = 'VA150ALD2'
-wire = 'III'
+sample = 'VA142-1'
+wire = 'I'
 notes = '.............'
 date = time.strftime('%d-%m-%y',time.localtime())
 
@@ -32,7 +32,7 @@ lockin1 = SRS830.device('GPIB0::8')
 lockin2 = SRS830.device('GPIB0::16')
 gate = DAC488.device('GPIB0::10')
 # gate = keithley.device('GPIB0::24')
-temp = ls340.device('GPIB0::12')
+temp = LS340.device('GPIB0::12')
 
 def mkdir_p(path):
     try:
@@ -46,7 +46,8 @@ path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\' + sample +'\\' + wire
 
 if os.path.isfile(path+'rampup.dat'):
     print 'Warning! File already exists'
-    path = path + 'I'
+    if overwrite_previous == False:
+        path = path + 'I'
     
 mkdir_p(path)
 
@@ -63,7 +64,7 @@ t_start = time.time()
 print "Window %f to %f" % (windowlower, windowupper)
 
 print("Temp(K) \t Time(s) \t Gate(V) \t X-Value(V)\t Y-Value\t X-Value-2\t Y-Value-2 \n")
-dat_file.write("Temp(K) \t Time(s) \t Gate(V) \t X-Value(V)\t Y-Value\t X-Value-2\t Y-Value-2 \n")
+dat_file.write("Temp(K) \t Time(s) \t Gate(V) \t X-Value(V)\t Y-Value\t X-Value-2\t Y-Value-2\t Conductance \n")
 
 #plot1 = plot.basicplot()
 
@@ -83,12 +84,13 @@ while gateVoltage > max_gate:
     xValue2 = lockin2.read_input(1)
     yValue2 = lockin2.read_input(2)
     currTime = (time.time()-t_start)/60
+    conductance = twopointcond(xValue1)
     
     #plot1.addPoint(gateVoltage,xValue1)
     
     # Write the values to file
-    print "%f \t %f \t %f \t %r \t %r \t %r \t %r" % (currTemp, currTime, gateVoltage, xValue1, yValue1, xValue2, yValue2)
-    dat_file.write("%f \t %f \t %f \t %r \t %r \t %r \t %r \n" % (currTemp, currTime, gateVoltage, xValue1, yValue1, xValue2, yValue2))
+    print "%f \t %f" % (gateVoltage,conductance)
+    dat_file.write("%f \t %f \t %f \t %r \t %r \t %r \t %r \t %f \n" % (currTemp, currTime, gateVoltage, xValue1, yValue1, xValue2, yValue2, conductance))
     
     if (gateVoltage <= windowlower and gateVoltage >= windowupper):
         gateVoltage = gateVoltage - windowstep
@@ -98,7 +100,7 @@ while gateVoltage > max_gate:
     
     ## Sweep Down Gate
     
-dat_file = open (path + 'rampup.dat', 'w')
+dat_file = open (path + 'rampdown.dat', 'w')
 
 while gateVoltage <= 0:            
      # Set the new Gate Voltage
@@ -109,12 +111,15 @@ while gateVoltage <= 0:
     
     currTemp = float(temp.read('c'))
     xValue1 = lockin1.read_input(1)
+    yValue1 = lockin1.read_input(2)
     xValue2 = lockin2.read_input(1)
+    yValue2 = lockin2.read_input(2)
     currTime = (time.time()-t_start)/60
+    conductance = twopointcond(xValue1)
     
     # Write the values to file
-    print "%f \t %f \t %f \t %r \t %r \t %r \t %r" % (currTemp, currTime, gateVoltage, xValue1, yValue1, xValue2, yValue2)
-    dat_file.write("%f \t %f \t %f \t %r \t %r \t %r \t %r \n" % (currTemp, currTime, gateVoltage, xValue1, yValue1, xValue2, yValue2))
+    print "%f \t %f" % (gateVoltage,conductance)
+    dat_file.write("%f \t %f \t %f \t %r \t %r \t %r \t %r \t %f \n" % (currTemp, currTime, gateVoltage, xValue1, yValue1, xValue2, yValue2, conductance))
         
     if (gateVoltage <= windowlower and gateVoltage >= windowupper):
         gateVoltage = gateVoltage + windowstep
