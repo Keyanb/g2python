@@ -7,8 +7,8 @@ Created on Sat Jun 16 13:18:32 2012
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4 import QtCore, QtGui
-import ui_recordsweep
+from PyQt4 import QtCore, QtGui, QtSvg
+import ui_recordsweep_full as ui_recordsweep
 import visa
 
 import LS370, HP4263B, MKS
@@ -20,6 +20,8 @@ import SRS830
 import IPS120
 import readconfigfile
 import string
+import copy as pycopy
+
 from pylab import *
 
 try:
@@ -67,85 +69,89 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             line_set.append(line1)
         
         self.ax.lines = line_set
-
-   
+ 
+        self.data_array = array([])
+        self.chan_X = 0
+        
+        self.refresh_instrument_list()
+        
+        self.load_settings("default_settings.txt")
+        self.tabWidget.setCurrentIndex(0)
+        
+        self.fileMenu = self.menuBar().addMenu("File")        
+        self.fileMenu.addAction("Load settings", self.load_settings_dialog)
+        self.fileMenu.addAction("Save settings", self.save_settings_dialog)
+        self.fileMenu.addAction("Print Figure", self.print_figure)
+        
+        self.fileMenu.addAction("Refresh Instrument List", self.refresh_instrument_list)
+        self.plotMenu = self.menuBar().addMenu("&Plot")
+        self.plotMenu.addAction("Save Figure", self.save_figure)
+     
+    
+    def refresh_instrument_list(self):
         try:
             self.AVAILABLE_PORTS = visa.get_instruments_list()
         except visa.VisaIOError as e:
             if e.error_code == -1073807343:
                 print "GPIB does not seem to be connected"
-            self.AVAILABLE_PORTS = ["GPIB::8", "GPIB::9", "GPIB::26"]
-            
-        self.data_array = array([])
-        self.chan_X = 0
-
-        self.customizeUi()
-        self.load_settings()
+            self.AVAILABLE_PORTS = ["GPIB::8", "GPIB::9", "GPIB::26"]        
         
-        self.statusbar.showMessage("Program loaded")
-        self.plotMenu = self.menuBar().addMenu("&Plot")
-        self.plotMenu.addAction("Quick Save Figure", self.savefigure)
-        
-        self.connect (self.mplwidget, SIGNAL("mousePressed(PyQt_PyObject)"), self.panPlot)
-        
-    def panPlot(self, coords):
+    def save_figure(self):
+        self.fig.savefig(str(QtGui.QFileDialog.getSaveFileName(self, 'Open settings file', './')))
 
-        inv = self.ax.transData.inverted()
+    def save_settings_dialog(self):
+        self.save_settings(str(QtGui.QFileDialog.getSaveFileName(self, 'Save settings file as', './')))
         
-        self.statusbar.showMessage(str (inv.transform(coords)))
+    def load_settings_dialog(self):                      
+        self.load_settings(QtGui.QFileDialog.getOpenFileName(self, 'Open settings file', './'))
+
+    def print_figure(self):
+        printer = QPrinter()
         
-    def savefigure(self):
-        self.fig.savefig("test.pdf")
+        dlg = QPrintDialog(printer)
         
-    def customizeUi(self):
+        if(dlg.exec_()!= QtGui.QDialog.Accepted):
+             return
+             
+        p = QPainter(printer)
 
-        self.lineEdit_Name = []
-        self.comboBox_Type = []
-        self.comboBox_Instr = []
-        self.comboBox_Param = []       
-        self.radioButton_X = [] 
-        self.checkBox_Y = []        
-   
-        for i in range (self.MAX_CHANNELS):   
+        dpi = printer.resolution()
+        
+        # copy the current figure contents to a standard size figure
+        fig2 = figure(figsize=(8,5), dpi = dpi*3)
 
-            pos_LE = lambda x: (20 * x + 1) + 50
-                    
-            self.lineEdit_Name.append(QtGui.QLineEdit(self.groupBox_Name))
-            self.lineEdit_Name[i].setGeometry(QtCore.QRect(10, pos_LE(i), 81, 16))
-            self.lineEdit_Name[i].setText(QtGui.QApplication.translate("RecordSweepWindow", "", None, QtGui.QApplication.UnicodeUTF8))
-            self.lineEdit_Name[i].setObjectName(_fromUtf8("lineEdit_Name"))
-            
-            self.comboBox_Type.append(QtGui.QComboBox(self.groupBox_Type))
-            self.comboBox_Type[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 61, 16))
-            self.comboBox_Type[i].setObjectName(_fromUtf8("comboBox"))
-            self.comboBox_Type[i].addItems(self.INSTRUMENT_TYPES)
-            
-            self.connect(self.comboBox_Type[i], SIGNAL("currentIndexChanged(int)"), self.ComboBoxTypeHandler)                  
+        ax = fig2.add_subplot(1,1,1)
+        for line in self.ax.lines:
+            if line.get_xdata() != []:
+                ax.plot (line.get_xdata(), line.get_ydata(), label= line.get_label())
+        ax.set_xlim(self.ax.get_xlim())
+        ax.set_ylim(self.ax.get_ylim())
+        ax.set_xlabel(self.ax.get_xlabel())
+        ax.set_ylabel(self.ax.get_ylabel())        
+        
+        # Shink current axis by 20%
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        
+        # Put a legend to the right of the current axis
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-            self.comboBox_Instr.append(QtGui.QComboBox(self.groupBox_Instr))
-            self.comboBox_Instr[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 61, 16))
-            self.comboBox_Instr[i].setObjectName(_fromUtf8("comboBox"))
-            self.comboBox_Instr[i].addItems(self.AVAILABLE_PORTS)
-            
-            self.comboBox_Param.append(QtGui.QComboBox(self.groupBox_Param))
-            self.comboBox_Param[i].setGeometry(QtCore.QRect(10, 20 * (i+1), 61, 16))
-            self.comboBox_Param[i].setObjectName(_fromUtf8("comboBox"))
+        fig2.savefig("temp.png", dpi=dpi*3)
+        
+        margin_top = 0.5*dpi
+        margin_left = 0.5*dpi
+        
+        
+        #svg = QtSvg.QSvgRenderer("temp.svg")
+        #svg.render(p, QRectF(margin_top,margin_left, 8*dpi, 5*dpi))
 
-            self.radioButton_X.append(QRadioButton(self.groupBox_X))
-            self.radioButton_X[i].setGeometry(QRect(7, 20*(i+1), 16, 16))
-            self.radioButton_X[i].setText(_fromUtf8(""))
-            self.radioButton_X[i].setObjectName(_fromUtf8("radioButton_" + str(i)))
-            self.connect(self.radioButton_X[i], SIGNAL("toggled(bool)"), self.XRadioButtonHandler)                          
-      
-            self.checkBox_Y.append(QCheckBox(self.groupBox_Y))
-            self.checkBox_Y[i].setGeometry(QRect(5, 20 * (i+1), 16, 16))
-            self.checkBox_Y[i].setText(_fromUtf8(""))
-            self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
-            self.connect(self.checkBox_Y[i], SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)       
-        self.tabWidget.setCurrentIndex(0)
-    
-    def load_settings(self):
-        settings_file = open("default_settings.txt")
+        p.drawImage(QRectF(margin_top,margin_left, 8*dpi, 5*dpi), QImage("temp.png", format='png'))
+        p.drawText (margin_left, 700, "Data recorded to: " + self.out_file.name)
+                
+        p.end()           
+           
+    def load_settings(self, fname):
+        settings_file = open(fname)
         
         idx = 0
         for line in settings_file:
@@ -163,8 +169,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                     if port in self.AVAILABLE_PORTS:
                         self.comboBox_Instr[idx].setCurrentIndex(self.comboBox_Instr[idx].findText(port))
                     else:
-                        self.comboBox_Instr[idx].addItem(port)
-                        self.comboBox_Instr[idx].setItemIcon(0, QIcon("not_found.png"))
+                        self.comboBox_Instr[idx].addItem(QIcon("not_found.png"), port)
+                        self.comboBox_Instr[idx].setCurrentIndex(self.comboBox_Instr[idx].count()-1)
+
                         
                     self.comboBox_Param[idx].clear()
                     self.comboBox_Param[idx].addItems(self.AVAILABLE_PARAMS[instr_type])
@@ -179,6 +186,21 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             
             idx +=1
         
+        settings_file.close()
+
+    def save_settings(self, fname):
+        settings_file = open(fname, 'w')
+        
+        idx = 0
+        for idx in range (self.MAX_CHANNELS):
+            name = str(self.lineEdit_Name[idx].text())
+            if name and not name.isspace(): 
+                settings_file.write(self.lineEdit_Name[idx].text() +', ')
+                settings_file.write(self.comboBox_Type[idx].currentText() +', ')
+                settings_file.write(self.comboBox_Instr[idx].currentText() +', ')
+                settings_file.write(self.comboBox_Param[idx].currentText() +', ')
+                settings_file.write(str(self.radioButton_X[idx].isChecked()) +', ')
+                settings_file.write(str(self.checkBox_Y[idx].isChecked()) +'\n')
         settings_file.close()
         
         
@@ -243,13 +265,17 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.t_start = time.time()            
             #open file, write header
             self.out_file = readconfigfile.open_data_file()
+
             self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
         
             name_list = []
             for lineEdit in self.lineEdit_Name:
                 lineEdit.setReadOnly(True)
                 name_list.append(str(lineEdit.text()))
-                
+            
+            for name, line in zip (name_list, self.ax.lines):
+                line.set_label(name)
+            
             stri = str(name_list).strip('[]')           
             print stri
             self.out_file.write(stri + '\n')  

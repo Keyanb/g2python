@@ -1,0 +1,184 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'recordsweep.ui'
+#
+# Created: Fri Feb 15 18:17:16 2013
+#      by: PyQt4 UI code generator 4.8.6
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+from mplZoomWidget import MatplotlibZoomWidget
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    _fromUtf8 = lambda s: s
+
+class Ui_RecordSweepWindow(object):
+    def setupUi(self, RecordSweepWindow):
+        RecordSweepWindow.setObjectName(_fromUtf8("RecordSweepWindow"))
+        RecordSweepWindow.resize(1099, 520)
+        RecordSweepWindow.setWindowTitle(QtGui.QApplication.translate("RecordSweepWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
+        self.centralwidget = QtGui.QWidget(RecordSweepWindow)
+        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        self.gridLayout = QtGui.QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.mplwidget = MatplotlibZoomWidget(self.centralwidget)
+        self.mplwidget.setObjectName(_fromUtf8("mplwidget"))
+        self.gridLayout.addWidget(self.mplwidget, 0, 0, 2, 1)
+        self.startStopButton = QtGui.QPushButton(self.centralwidget)
+        self.startStopButton.setText(QtGui.QApplication.translate("RecordSweepWindow", "Start", None, QtGui.QApplication.UnicodeUTF8))
+        self.startStopButton.setObjectName(_fromUtf8("startStopButton"))
+        self.gridLayout.addWidget(self.startStopButton, 0, 1, 1, 1)
+        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
+        self.groupBox_Name = QtGui.QGroupBox(self.centralwidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_Name.sizePolicy().hasHeightForWidth())
+        self.groupBox_Name.setSizePolicy(sizePolicy)
+        self.groupBox_Name.setMinimumSize(QtCore.QSize(100, 0))
+        self.groupBox_Name.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Channel", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Name.setObjectName(_fromUtf8("groupBox_Name"))
+        self.horizontalLayout_3.addWidget(self.groupBox_Name)
+        self.tabWidget = QtGui.QTabWidget(self.centralwidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
+        self.tabWidget.setSizePolicy(sizePolicy)
+        self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
+        self.tab = QtGui.QWidget()
+        self.tab.setObjectName(_fromUtf8("tab"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.tab)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.groupBox_Type = QtGui.QGroupBox(self.tab)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_Type.sizePolicy().hasHeightForWidth())
+        self.groupBox_Type.setSizePolicy(sizePolicy)
+        self.groupBox_Type.setMinimumSize(QtCore.QSize(80, 0))
+        self.groupBox_Type.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Type", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Type.setObjectName(_fromUtf8("groupBox_Type"))
+        self.horizontalLayout.addWidget(self.groupBox_Type)
+        self.groupBox_Instr = QtGui.QGroupBox(self.tab)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_Instr.sizePolicy().hasHeightForWidth())
+        self.groupBox_Instr.setSizePolicy(sizePolicy)
+        self.groupBox_Instr.setMinimumSize(QtCore.QSize(80, 0))
+        self.groupBox_Instr.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Instrument", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Instr.setObjectName(_fromUtf8("groupBox_Instr"))
+        self.horizontalLayout.addWidget(self.groupBox_Instr)
+        self.groupBox_Param = QtGui.QGroupBox(self.tab)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_Param.sizePolicy().hasHeightForWidth())
+        self.groupBox_Param.setSizePolicy(sizePolicy)
+        self.groupBox_Param.setMinimumSize(QtCore.QSize(80, 0))
+        self.groupBox_Param.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Parameter", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Param.setObjectName(_fromUtf8("groupBox_Param"))
+        self.horizontalLayout.addWidget(self.groupBox_Param)
+        self.tabWidget.addTab(self.tab, _fromUtf8(""))
+        self.tab_2 = QtGui.QWidget()
+        self.tab_2.setObjectName(_fromUtf8("tab_2"))
+        self.horizontalLayout_2 = QtGui.QHBoxLayout(self.tab_2)
+        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+        self.groupBox_X = QtGui.QGroupBox(self.tab_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_X.sizePolicy().hasHeightForWidth())
+        self.groupBox_X.setSizePolicy(sizePolicy)
+        self.groupBox_X.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_X.setObjectName(_fromUtf8("groupBox_X"))
+        self.horizontalLayout_2.addWidget(self.groupBox_X)
+        self.groupBox_Y = QtGui.QGroupBox(self.tab_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_Y.sizePolicy().hasHeightForWidth())
+        self.groupBox_Y.setSizePolicy(sizePolicy)
+        self.groupBox_Y.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Y.setObjectName(_fromUtf8("groupBox_Y"))
+        self.horizontalLayout_2.addWidget(self.groupBox_Y)
+        spacerItem = QtGui.QSpacerItem(187, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem)
+        self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
+        self.horizontalLayout_3.addWidget(self.tabWidget)
+        self.gridLayout.addLayout(self.horizontalLayout_3, 1, 1, 1, 1)
+        RecordSweepWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtGui.QMenuBar(RecordSweepWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1099, 21))
+        self.menubar.setObjectName(_fromUtf8("menubar"))
+        RecordSweepWindow.setMenuBar(self.menubar)
+        self.statusbar = QtGui.QStatusBar(RecordSweepWindow)
+        self.statusbar.setObjectName(_fromUtf8("statusbar"))
+        RecordSweepWindow.setStatusBar(self.statusbar)
+        self.actionSave_figure = QtGui.QAction(RecordSweepWindow)
+        self.actionSave_figure.setText(QtGui.QApplication.translate("RecordSweepWindow", "Save figure", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSave_figure.setObjectName(_fromUtf8("actionSave_figure"))
+        self.actionQuit = QtGui.QAction(RecordSweepWindow)
+        self.actionQuit.setText(QtGui.QApplication.translate("RecordSweepWindow", "Quit", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
+
+        self.lineEdit_Name = []
+        self.comboBox_Type = []
+        self.comboBox_Instr = []
+        self.comboBox_Param = []       
+        self.radioButton_X = [] 
+        self.checkBox_Y = []        
+   
+        for i in range (self.MAX_CHANNELS):   
+
+            pos_LE = lambda x: (20 * x + 1) + 50
+                    
+            self.lineEdit_Name.append(QtGui.QLineEdit(self.groupBox_Name))
+            self.lineEdit_Name[i].setGeometry(QtCore.QRect(10, pos_LE(i), 81, 16))
+            self.lineEdit_Name[i].setText(QtGui.QApplication.translate("RecordSweepWindow", "", None, QtGui.QApplication.UnicodeUTF8))
+            self.lineEdit_Name[i].setObjectName(_fromUtf8("lineEdit_Name"))
+            
+            self.comboBox_Type.append(QtGui.QComboBox(self.groupBox_Type))
+            self.comboBox_Type[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 71, 16))
+            self.comboBox_Type[i].setObjectName(_fromUtf8("comboBox"))
+            self.comboBox_Type[i].addItems(self.INSTRUMENT_TYPES)
+            
+            self.connect(self.comboBox_Type[i], QtCore.SIGNAL("currentIndexChanged(int)"), self.ComboBoxTypeHandler)                  
+
+            self.comboBox_Instr.append(QtGui.QComboBox(self.groupBox_Instr))
+            self.comboBox_Instr[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 71, 16))
+            self.comboBox_Instr[i].setObjectName(_fromUtf8("comboBox"))
+            
+            self.comboBox_Param.append(QtGui.QComboBox(self.groupBox_Param))
+            self.comboBox_Param[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 71, 16))
+            self.comboBox_Param[i].setObjectName(_fromUtf8("comboBox"))
+
+            self.radioButton_X.append(QtGui.QRadioButton(self.groupBox_X))
+            self.radioButton_X[i].setGeometry(QtCore.QRect(7, 20*(i+1), 16, 16))
+            self.radioButton_X[i].setText(_fromUtf8(""))
+            self.radioButton_X[i].setObjectName(_fromUtf8("radioButton_" + str(i)))
+            self.connect(self.radioButton_X[i], QtCore.SIGNAL("toggled(bool)"), self.XRadioButtonHandler)                          
+      
+            self.checkBox_Y.append(QtGui.QCheckBox(self.groupBox_Y))
+            self.checkBox_Y[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 16, 16))
+            self.checkBox_Y[i].setText(_fromUtf8(""))
+            self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
+            self.connect(self.checkBox_Y[i], QtCore.SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)     
+            
+            
+        self.tabWidget.setCurrentIndex(0)
+
+        self.retranslateUi(RecordSweepWindow)
+        self.tabWidget.setCurrentIndex(1)
+        QtCore.QMetaObject.connectSlotsByName(RecordSweepWindow)
+
+    def retranslateUi(self, RecordSweepWindow):
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("RecordSweepWindow", "Instrument Setup", None, QtGui.QApplication.UnicodeUTF8))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("RecordSweepWindow", "Plotting Options", None, QtGui.QApplication.UnicodeUTF8))
+
+from matplotlibwidget import MatplotlibWidget
