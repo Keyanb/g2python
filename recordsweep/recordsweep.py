@@ -52,24 +52,35 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                      self.updateData)
 
         # axes and figure initialization
-        self.ax = self.mplwidget.axes
+        
         self.fig = self.mplwidget.figure
+        self.ax = self.mplwidget.axes
+        self.axR = self.ax.twinx()
+
         self.ax.tick_params(axis='x', labelsize=8)
         self.ax.tick_params(axis='y', labelsize=8)
+        self.axR.tick_params(axis='x', labelsize=8)
+        self.axR.tick_params(axis='y', labelsize=8)
+        
         self.fig.canvas.draw()              
         
         self.history_length = 0
         
          # objects to hold line data
-        line_set = []
+        line_set_L = []
+        line_set_R = []
         fmt_str = ['b','g','r','k','c','m']
         
         for i in range (self.MAX_CHANNELS):            
-            line1, = self.ax.plot([], [], fmt_str[i])            
-            line_set.append(line1)
+            line1, = self.ax.plot([], [], fmt_str[i])     
+            line2, = self.ax.plot([], [], fmt_str[i])
+            
+            line_set_L.append(line1)
+            line_set_R.append(line2)
         
-        self.ax.lines = line_set
- 
+        self.ax.lines = line_set_L
+        self.axR.lines = line_set_R
+
         self.data_array = array([])
         self.chan_X = 0
         
@@ -212,7 +223,12 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 
         self.updatePlot() 
         
-    def YCheckBoxHandler(self):        
+    def YCheckBoxHandler(self):  
+        for num, box in enumerate(self.checkBox_Y):
+            if box.isChecked():
+                name = self.lineEdit_Name[num].text()
+                unit = self.UNITS[str(self.comboBox_Param[num].currentText())]
+                self.ax.set_ylabel(name + " (" + unit + ")")
         self.updatePlot()      
     
     def ComboBoxTypeHandler(self):
@@ -247,14 +263,21 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         if self.history_length:
             first = max(0, self.data_array.shape[0] - self.history_length)
             
-        for chan_Y, line in enumerate(self.ax.lines):
+        for chan_Y, [line_L, line_R] in enumerate(zip (self.ax.lines, self.axR.lines)):
             if self.checkBox_Y[chan_Y].isChecked() and self.data_array.size > 0:
-                line.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])
+                line_L.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])
             else:
-                line.set_data([],[])
+                line_L.set_data([],[])
+                
+            if self.checkBox_YR[chan_Y].isChecked() and self.data_array.size > 0:
+                line_R.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])
+            else:
+                line_R.set_data([],[])
                 
         self.ax.relim()
-        self.ax.autoscale_view()                      
+        self.ax.autoscale_view() 
+        self.axR.relim()
+        self.axR.autoscale_view()                      
         self.fig.canvas.draw()
 
                  

@@ -104,9 +104,20 @@ class Ui_RecordSweepWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_Y.sizePolicy().hasHeightForWidth())
         self.groupBox_Y.setSizePolicy(sizePolicy)
-        self.groupBox_Y.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "Y", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_Y.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "YL", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_Y.setObjectName(_fromUtf8("groupBox_Y"))
         self.horizontalLayout_2.addWidget(self.groupBox_Y)
+        
+        self.groupBox_YR = QtGui.QGroupBox(self.tab_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_YR.sizePolicy().hasHeightForWidth())        
+        self.groupBox_YR.setSizePolicy(sizePolicy)
+        self.groupBox_YR.setTitle(QtGui.QApplication.translate("RecordSweepWindow", "YR", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_YR.setObjectName(_fromUtf8("groupBox_YR"))       
+        self.horizontalLayout_2.addWidget(self.groupBox_YR)
+        
         spacerItem = QtGui.QSpacerItem(187, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
@@ -132,7 +143,8 @@ class Ui_RecordSweepWindow(object):
         self.comboBox_Instr = []
         self.comboBox_Param = []       
         self.radioButton_X = [] 
-        self.checkBox_Y = []        
+        self.checkBox_Y = [] 
+        self.checkBox_YR = []
    
         for i in range (self.MAX_CHANNELS):   
 
@@ -170,7 +182,13 @@ class Ui_RecordSweepWindow(object):
             self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
             self.connect(self.checkBox_Y[i], QtCore.SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)     
             
+            self.checkBox_YR.append(QtGui.QCheckBox(self.groupBox_YR))
+            self.checkBox_YR[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 16, 16))
+            self.checkBox_YR[i].setText(_fromUtf8(""))
+            self.checkBox_YR[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
+            self.connect(self.checkBox_Y[i], QtCore.SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)     
             
+                      
         self.tabWidget.setCurrentIndex(0)
 
         self.retranslateUi(RecordSweepWindow)

@@ -51,4 +51,33 @@ class MatplotlibZoomWidget(MatplotlibWidget):
    
         self.figure.canvas.draw()    
         super(MatplotlibZoomWidget, self).wheelEvent(event)
- 
+
+    def keyPressEvent(self, event):
+        print ("hmmm")
+        key = event.key()
+        if key == QtCore.Qt.Key_Left: 
+            x_min, x_max = self.axes.get_xlim()
+            full_scale = x_max - x_min
+            self.axes.set_xlim(xmin - 0.1*full_scale, xmax - 0.1*full_scale)
+        elif key == QtCore.Qt.Key_Right:
+            x_min, x_max = self.axes.get_xlim()
+            full_scale = x_max - x_min
+            self.axes.set_xlim(xmin + 0.1*full_scale, xmax + 0.1*full_scale)
+        elif key == QtCore.Qt.Key_Up:
+            y_min, y_max = self.axes.get_ylim()
+            full_scale = y_max - y_min
+            self.axes.set_xlim(ymin + 0.1*full_scale, ymax + 0.1*full_scale)
+        elif key == QtCore.Qt.Key_Down:
+            y_min, y_max = self.axes.get_ylim()
+            full_scale = y_max - y_min
+            self.axes.set_xlim(ymin + 0.1*full_scale, ymax + 0.1*full_scale)
+        else:
+            return
+            
+        self.figure.canvas.draw()
+        
+        super(MatplotlibZoomWidget, self).keyEvent(event)
+        
+    def focusInEvent(self, event):
+        print ("focus!")
+        super(MatplotlibZoomWidget, self).focusInEvent(event)    
