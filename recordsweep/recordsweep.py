@@ -9,18 +9,14 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4 import QtCore, QtGui, QtSvg
 import ui_recordsweep_full as ui_recordsweep
+
 import visa
 
-import LS370, HP4263B, MKS
 import time
-import threading
-import chart_recorder as cr
 import numpy as np
-import SRS830
-import IPS120
 import readconfigfile
-import string
-import copy as pycopy
+
+import DataTakerThread as DTT
 
 from pylab import *
 
@@ -45,9 +41,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         super(RecordSweepWindow, self).__init__()
         self.setupUi(self)
 
-        
         self.lock = QReadWriteLock()         
-        self.datataker = DataTaker(self.lock, self)  
+        self.datataker = DTT.DataTakerThread(self.lock, self)  
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"),
                      self.updateData)
 
@@ -73,7 +68,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         
         for i in range (self.MAX_CHANNELS):            
             line1, = self.ax.plot([], [], fmt_str[i])     
-            line2, = self.ax.plot([], [], fmt_str[i])
+            line2, = self.axR.plot([], [], fmt_str[i])
             
             line_set_L.append(line1)
             line_set_R.append(line2)
@@ -150,8 +145,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         fig2.savefig("temp.png", dpi=dpi*3)
         
         margin_top = 0.5*dpi
-        margin_left = 0.5*dpi
-        
+        margin_left = 0.5*dpi       
         
         #svg = QtSvg.QSvgRenderer("temp.svg")
         #svg.render(p, QRectF(margin_top,margin_left, 8*dpi, 5*dpi))
@@ -182,14 +176,12 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                     else:
                         self.comboBox_Instr[idx].addItem(QIcon("not_found.png"), port)
                         self.comboBox_Instr[idx].setCurrentIndex(self.comboBox_Instr[idx].count()-1)
-
                         
                     self.comboBox_Param[idx].clear()
                     self.comboBox_Param[idx].addItems(self.AVAILABLE_PARAMS[instr_type])
 
                     param = settings[3].strip().upper()
-                    if param in self.AVAILABLE_PARAMS[instr_type]:
-                        
+                    if param in self.AVAILABLE_PARAMS[instr_type]:                       
                         self.comboBox_Param[idx].setCurrentIndex(self.comboBox_Param[idx].findText(param))
                        
             self.radioButton_X[idx].setChecked (settings[4].strip().upper() == "TRUE")
@@ -318,93 +310,6 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.out_file.close()
             self.startStopButton.setText("Start")   
         
-
-class DataTaker(QThread):
-    MEAS_TIME = 1      
-    USING_MAGNET = True 
-    
-    def __init__(self, lock, parent=None):
-        super(DataTaker, self).__init__(parent)
-        self.lock = lock
-        self.stopped = True
-        self.mutex = QMutex()
-        self.completed = False
-        self.DEBUG = readconfigfile.get_debug_setting()
-
-    def initialize(self, name_list, type_list, dev_list, param_list):     
-        self.stopped = True
-        self.completed = False     
-        self.t_start = time.time()
-   
-        # tuple: lockin #, channel, subplot for display
-        self.data_channels = []        
-        self.instruments = {}
-        self.instrument_types = {}
-
-        for name, instr_type, dev, param in zip(name_list, type_list, dev_list, param_list):
-            if name:
-                # add instrument to list if not there
-                if not dev in self.instruments:
-                    if instr_type == 'SRS830':               
-                        self.instruments[dev] = SRS830.SRS830(dev, debug=self.DEBUG)
-                    elif instr_type == 'IPS120':
-                        self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)    
-                    self.instrument_types[dev] = instr_type
-                else:
-                    if instr_type != self.instrument_types[dev]:
-                        print ("Same GPIB port specified for different instruments! ")
-                        print (dev + " " + instr_type + " " + self.instrument_types[dev])
-                        instr_type = 'NONE'
-                        
-    
-                if instr_type == 'TIME':
-                    command = lambda: time.time() - self.t_start
-                elif instr_type == 'IPS120':
-                    if param == 'FIELD':
-                        command = lambda d=dev: self.instruments[d].read_field()
-                elif instr_type == 'SRS830':
-                    if param =='X':
-                        command = lambda d=dev: self.instruments[d].read_input(1)
-                    elif param =='Y':
-                        command = lambda d=dev: self.instruments[d].read_input(2)
-                    elif param =='R':
-                        command = lambda d=dev: self.instruments[d].read_input(3)    
-                    elif param =='PHASE':
-                        command = lambda d=dev: self.instruments[d].read_input(4)    
-                     
-            self.data_channels.append(command)
-
-        
-    def run(self):
-        self.stopped = False
-        self.main_loop()
-        self.stop()
-        self.emit(SIGNAL("finished(bool)"), self.completed)        
-        
-    
-    def stop(self):
-        try:
-            self.mutex.lock()
-            self.stopped = True
-        finally:
-            self.mutex.unlock()
-
-    def isStopped(self):
-        try:
-            self.mutex.lock()
-            return self.stopped
-        finally:
-            self.mutex.unlock()    
-    
-    def main_loop(self):
-        while self.isStopped() == False:
-            data_set = [command() for command in self.data_channels]            
-            self.emit(SIGNAL("data(PyQt_PyObject)"), array(data_set))              
-            time.sleep(self.MEAS_TIME)            
-
-    def clean_up(self):
-        for inst in self.instruments:
-            inst.close()      
 
 if __name__ == "__main__":
     import sys
