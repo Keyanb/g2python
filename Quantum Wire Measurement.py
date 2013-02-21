@@ -5,14 +5,14 @@ Created on Mon Sep 24 12:41:25 2012
 @author: bram
 """
 import time
-import SRS830
+from SRS830 import *
 import DAC488
 import LS340
 import os, errno
 from conductance_calculator import twopointcond
 
 stepTime = 0.5
-max_gate = -2.2
+max_gate = 2
 stepsize = 0.005
 windowlower = -1.5
 windowupper = -2.0
@@ -22,14 +22,14 @@ gateVoltage = 0.0
 overwrite_previous = True
 
 sample = 'VA142-1'
-wire = 'I'
+wire = 'ALL'
 notes = '.............'
 date = time.strftime('%d-%m-%y',time.localtime())
 
 # Initialize the devices
 
-lockin1 = SRS830.device('GPIB0::8')
-lockin2 = SRS830.device('GPIB0::16')
+lockin1 = SRS830('GPIB0::8')
+lockin2 = SRS830('GPIB0::16')
 gate = DAC488.device('GPIB0::10')
 # gate = keithley.device('GPIB0::24')
 temp = LS340.device('GPIB0::12')
