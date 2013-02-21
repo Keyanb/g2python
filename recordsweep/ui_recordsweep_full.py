@@ -127,6 +127,52 @@ class Ui_RecordSweepWindow(object):
         self.actionQuit.setText(QtGui.QApplication.translate("RecordSweepWindow", "Quit", None, QtGui.QApplication.UnicodeUTF8))
         self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
 
+        self.lineEdit_Name = []
+        self.comboBox_Type = []
+        self.comboBox_Instr = []
+        self.comboBox_Param = []       
+        self.radioButton_X = [] 
+        self.checkBox_Y = []        
+   
+        for i in range (self.MAX_CHANNELS):   
+
+            pos_LE = lambda x: (20 * x + 1) + 50
+                    
+            self.lineEdit_Name.append(QtGui.QLineEdit(self.groupBox_Name))
+            self.lineEdit_Name[i].setGeometry(QtCore.QRect(10, pos_LE(i), 81, 16))
+            self.lineEdit_Name[i].setText(QtGui.QApplication.translate("RecordSweepWindow", "", None, QtGui.QApplication.UnicodeUTF8))
+            self.lineEdit_Name[i].setObjectName(_fromUtf8("lineEdit_Name"))
+            
+            self.comboBox_Type.append(QtGui.QComboBox(self.groupBox_Type))
+            self.comboBox_Type[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 71, 16))
+            self.comboBox_Type[i].setObjectName(_fromUtf8("comboBox"))
+            self.comboBox_Type[i].addItems(self.INSTRUMENT_TYPES)
+            
+            self.connect(self.comboBox_Type[i], QtCore.SIGNAL("currentIndexChanged(int)"), self.ComboBoxTypeHandler)                  
+
+            self.comboBox_Instr.append(QtGui.QComboBox(self.groupBox_Instr))
+            self.comboBox_Instr[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 71, 16))
+            self.comboBox_Instr[i].setObjectName(_fromUtf8("comboBox"))
+            
+            self.comboBox_Param.append(QtGui.QComboBox(self.groupBox_Param))
+            self.comboBox_Param[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 71, 16))
+            self.comboBox_Param[i].setObjectName(_fromUtf8("comboBox"))
+
+            self.radioButton_X.append(QtGui.QRadioButton(self.groupBox_X))
+            self.radioButton_X[i].setGeometry(QtCore.QRect(7, 20*(i+1), 16, 16))
+            self.radioButton_X[i].setText(_fromUtf8(""))
+            self.radioButton_X[i].setObjectName(_fromUtf8("radioButton_" + str(i)))
+            self.connect(self.radioButton_X[i], QtCore.SIGNAL("toggled(bool)"), self.XRadioButtonHandler)                          
+      
+            self.checkBox_Y.append(QtGui.QCheckBox(self.groupBox_Y))
+            self.checkBox_Y[i].setGeometry(QtCore.QRect(5, 20 * (i+1), 16, 16))
+            self.checkBox_Y[i].setText(_fromUtf8(""))
+            self.checkBox_Y[i].setObjectName(_fromUtf8("checkBox_" +str(i)))  
+            self.connect(self.checkBox_Y[i], QtCore.SIGNAL("stateChanged(int)"), self.YCheckBoxHandler)     
+            
+            
+        self.tabWidget.setCurrentIndex(0)
+
         self.retranslateUi(RecordSweepWindow)
         self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(RecordSweepWindow)
