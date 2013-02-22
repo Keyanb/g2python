@@ -16,7 +16,7 @@ import bramplot
 import visa
 
 import LS370
-import time
+import time, os, errno
 import threading
 import numpy
 import SRS830
@@ -42,6 +42,8 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"), self.updateData)
         self.datataker.setup()
+        fileName = self.selectFile()
+        self.datataker.fileName = fileName
         self.datataker.start()
         
     def updateData(self, data_point):
@@ -55,12 +57,30 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.ax.relim()
         self.ax.autoscale_view()                      
         self.fig.canvas.draw()
-
+        
+        
+    def selectFile(self):
+        
+        def mkdir_p(path):
+            try:
+                os.makedirs(path)
+            except OSError as exc:
+                if exc.errno == errno.EEXIST:
+                    pass
+                else: raise
+                
+        date = time.strftime('%d-%m-%y',time.localtime())
+        path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        mkdir_p(path)
+        filePath = QFileDialog.getSaveFileName(None,'Choose Data File',path)
+        
+        return filePath
         
         
 class DataTaker(QThread):
     def __init__(self, parent=None):
         super(DataTaker, self).__init__(parent)
+        self.fileName = None
         
     def setup(self):
         self.lockin = SRS830.SRS830('GPIB0::8')
@@ -74,6 +94,9 @@ class DataTaker(QThread):
             data_point = xValue         
             self.emit(SIGNAL("data(PyQt_PyObject)"), array(data_point))  
             time.sleep(1)
+        
+        
+        
         
 if __name__ == "__main__":
     import sys
