@@ -12,6 +12,7 @@ class device:
     def __init__(self, name):  
         self.name = instrument(name)
         dac488 = self.name
+        self.currentVoltage = 0
         dac488.write('*RX')
         time.sleep(2)
 
@@ -25,6 +26,7 @@ class device:
         
     def set_voltage(self,port,voltage):
         dac488 = self.name
+        self.currentVoltage = voltage
         dac488.write("P" + str(port))
         dac488.write("V" + str(voltage))
         dac488.write("X")
