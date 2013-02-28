@@ -85,7 +85,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 else: raise
                 
         date = time.strftime('%d-%m-%y',time.localtime())
-        path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
         mkdir_p(path)
         filePath = QFileDialog.getSaveFileName(None,'Choose Data File',path)
         
@@ -108,7 +108,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 else: raise
                 
         date = time.strftime('%d-%m-%y',time.localtime())
-        path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
         mkdir_p(path)
         folderPath = QFileDialog.getExistingDirectory(self,'Choose Data Folder',path)
         
@@ -126,7 +126,7 @@ class DataTaker(QThread):
         which will be read. Opens data file.
         '''
         print "Initializing Instruments..."
-        self.lockin = SRS830.SRS830('GPIB0::8')
+        self.lockin = SRS830.SRS830('GPIB1::14')
         # self.lockin2 = SRS830.SRS830('GPIB0::16')
         # self.gate = DAC488.device('GPIB0::10')
         # self.gate.set_range(1,3)
@@ -152,14 +152,16 @@ class DataTaker(QThread):
         
         print "Acquiring Data..."
         
-        frequencies = numpy.logspace(0,5,100)
+        frequencies = numpy.logspace(1,5,100)
         n = len(frequencies)
         self.lockin.set_freq(frequencies[0])
        
         for i in range(0,n-1):
            self.lockin.set_freq(frequencies[i])
-           time.sleep(1)
+           time.sleep(5)
            self.ReadData(frequencies[i])
+           
+        print "Measurement Complete!"
         
         
     def ReadData(self,freq):

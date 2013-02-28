@@ -129,6 +129,7 @@ class DataTaker(QThread):
         self.lockin1 = SRS830.SRS830('GPIB0::8')
         self.lockin2 = SRS830.SRS830('GPIB0::16')
         self.gate = DAC488.device('GPIB0::10')
+        # self.gate = Keithley2400('GPIB0::24')
         self.gate.set_range(1,3)
         self.temp = LS340.device('GPIB0::12')
         
