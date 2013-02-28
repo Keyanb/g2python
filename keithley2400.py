@@ -65,7 +65,8 @@ class device:
         k2400 = self.name
         k2400.write (':OUTP OFF;')        
         
-    def set_voltage(self, voltage):
+    def set_voltage(self, voltage, port=0):
+        # port is a meaningless variable to ensure compatibility with DAC488
         k2400 = self.name
         s = ':SOUR:FUNC VOLT;:SOUR:VOLT %f;:CURR:PROT 5E-5;' % voltage
         k2400.write (s)

@@ -155,7 +155,9 @@ class DataTaker(QThread):
         frequencies = numpy.logspace(1,5,100)
         n = len(frequencies)
         self.lockin.set_freq(frequencies[0])
-       
+        xo = self.lockin.read_input(1)
+        yo = self.lockin.read_input(2)
+        
         for i in range(0,n-1):
            self.lockin.set_freq(frequencies[i])
            time.sleep(5)
@@ -197,6 +199,8 @@ class DataTaker(QThread):
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
+    def amplitudeDB(self,voltage):
+        
         
         
 if __name__ == "__main__":

@@ -85,7 +85,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 else: raise
                 
         date = time.strftime('%d-%m-%y',time.localtime())
-        path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
         mkdir_p(path)
         filePath = QFileDialog.getSaveFileName(None,'Choose Data File',path)
         
@@ -125,14 +125,8 @@ class DataTaker(QThread):
         This is the setup function which intializes the instruments and values
         which will be read. Opens data file.
         '''
-        print "Initializing Instruments..."
-        self.lockin1 = SRS830.SRS830('GPIB0::8')
-        self.lockin2 = SRS830.SRS830('GPIB0::16')
-        self.gate = DAC488.device('GPIB0::10')
-        # self.gate = Keithley2400('GPIB0::24')
-        self.gate.set_range(1,3)
-        self.temp = LS340.device('GPIB0::12')
         
+        self.VTI_instr()
                 
         self.data_file = open (self.path,'w')
         self.headers = ['Gate Voltage', 'x-Value', 'x-Value-2', 'Temperature','Conductance']
@@ -158,7 +152,7 @@ class DataTaker(QThread):
         
         while gateVoltage > max_gate:
             
-            self.gate.set_voltage(1,gateVoltage)
+            self.gate.set_voltage(gateVoltage)
             self.ReadData()
         
             if (gateVoltage <= windowlower and gateVoltage >= windowupper):
@@ -170,7 +164,7 @@ class DataTaker(QThread):
         
         while gateVoltage < 0:
             
-            self.gate.set_voltage(1,gateVoltage)
+            self.gate.set_voltage(gateVoltage)
             self.ReadData()
         
             if (gateVoltage <= windowlower and gateVoltage >= windowupper):
@@ -180,7 +174,7 @@ class DataTaker(QThread):
                 
             time.sleep(stepTime)
         
-        self.gate.set_voltage(1,0)
+        self.gate.set_voltage(0)
         
         
     def ReadData(self):
@@ -215,6 +209,21 @@ class DataTaker(QThread):
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
+    def VTI_instr(self):
+        print "Initializing Instruments..."
+        self.lockin1 = SRS830.SRS830('GPIB1::14')
+        self.lockin2 = SRS830.SRS830('GPIB1::8')
+        self.gate = Keithley2400('GPIB1::24')
+        self.temp = LS332.device('GPIB1::12')
+        
+    def 3He_instr(self):
+        print "Initializing Instruments..."
+        self.lockin1 = SRS830.SRS830('GPIB0::8')
+        self.lockin2 = SRS830.SRS830('GPIB0::16')
+        self.gate = DAC488.device('GPIB0::10')
+        self.gate.set_range(1,3)
+        self.temp = LS340.device('GPIB0::12')
+        
         
         
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ class device:
         # vrange does not mean the literal voltage range!!!
         # 1,2,3,4 correspond to 1V, 2V, 5V, 10V bipolar
         
-    def set_voltage(self,port,voltage):
+    def set_voltage(self,voltage,port=1):
         dac488 = self.name
         self.currentVoltage = voltage
         dac488.write("P" + str(port))
