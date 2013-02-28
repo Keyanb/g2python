@@ -22,6 +22,8 @@ import threading
 import numpy
 import SRS830
 import DAC488
+import keithley2400
+import LS332
 
 from pylab import *
 
@@ -153,7 +155,7 @@ class DataTaker(QThread):
         while gateVoltage > max_gate:
             
             self.gate.set_voltage(gateVoltage)
-            self.ReadData()
+            self.ReadData(gateVoltage)
         
             if (gateVoltage <= windowlower and gateVoltage >= windowupper):
                 gateVoltage = gateVoltage - windowstep
@@ -165,7 +167,7 @@ class DataTaker(QThread):
         while gateVoltage < 0:
             
             self.gate.set_voltage(gateVoltage)
-            self.ReadData()
+            self.ReadData(gateVoltage)
         
             if (gateVoltage <= windowlower and gateVoltage >= windowupper):
                 gateVoltage = gateVoltage + windowstep
@@ -177,7 +179,7 @@ class DataTaker(QThread):
         self.gate.set_voltage(0)
         
         
-    def ReadData(self):
+    def ReadData(self,voltage):
         '''
         This function reads the data, sends it to the GUI and writes it to the 
         file. The data should be sent with the x-value as the first number
@@ -191,7 +193,7 @@ class DataTaker(QThread):
         yValue2 = float(self.lockin2.read_input(1))
         
         temp = float(self.temp.read('C'))
-        gateVoltage = self.gate.currentVoltage
+        gateVoltage = voltage
         conductance = twopointcond(xValue1)
         
         # Compile values into a list
@@ -216,10 +218,10 @@ class DataTaker(QThread):
         print "Initializing Instruments..."
         self.lockin1 = SRS830.SRS830('GPIB1::14')
         self.lockin2 = SRS830.SRS830('GPIB1::8')
-        self.gate = Keithley2400('GPIB1::24')
+        self.gate = keithley2400.device('GPIB1::24')
         self.temp = LS332.device('GPIB1::12')
         
-    def 3He_instr(self):
+    def He3_instr(self):
         print "Initializing Instruments..."
         self.lockin1 = SRS830.SRS830('GPIB0::8')
         self.lockin2 = SRS830.SRS830('GPIB0::16')
