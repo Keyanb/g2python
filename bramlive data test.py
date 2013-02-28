@@ -129,7 +129,7 @@ class DataTaker(QThread):
         self.VTI_instr()
                 
         self.data_file = open (self.path,'w')
-        self.headers = ['Gate Voltage', 'x-Value', 'x-Value-2', 'Temperature','Conductance']
+        self.headers = ['Gate Voltage', 'x-Value', 'y-Value', 'x-Value-2', 'y-Value-2', 'Temperature', 'Conductance']
         self.dataPoint = []
         
         print "Initialization Complete"
@@ -187,12 +187,15 @@ class DataTaker(QThread):
         # Read the various Values
         xValue1 = float(self.lockin1.read_input(1))
         xValue2 = float(self.lockin2.read_input(1))
+        yValue1 = float(self.lockin1.read_input(2))
+        yValue2 = float(self.lockin2.read_input(1))
+        
         temp = float(self.temp.read('C'))
         gateVoltage = self.gate.currentVoltage
         conductance = twopointcond(xValue1)
         
         # Compile values into a list
-        self.dataPoint = [gateVoltage, xValue1, xValue2, temp, conductance]
+        self.dataPoint = [gateVoltage, xValue1, yValue1, xValue2, yValue2, temp, conductance]
         
         # Convert to a string for writing to file
         stri = str(self.dataPoint)
