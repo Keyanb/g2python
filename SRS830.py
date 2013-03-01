@@ -6,9 +6,11 @@ class SRS830:
     def __init__(self, name, debug = False):  
         self.name = name
         self.debug = debug
-       
+        
         if self.debug == False:
             self.srs = instrument(name)
+        
+        print self.srs.ask('*IDN?')
             
     def set_scale(self, scale):
         if self.debug == False:

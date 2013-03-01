@@ -16,12 +16,9 @@ def twopointcond(voltage,v_o=49.0):
         Gs = (1/Rs)/(7.748E-5)
     else:
         Gs = 0
-    # print Rs
     return Gs
     
 def fourpointcond(voltage1,voltage2):
     Gs = ((voltage1/4982.8)/(voltage2))/(7.748E-5) # (I/V)/Quantum
     
     return Gs
-    
-# twopointcond(9E-6)

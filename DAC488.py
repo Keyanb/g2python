@@ -12,6 +12,7 @@ class device:
     def __init__(self, name):  
         self.name = instrument(name)
         dac488 = self.name
+        self.currentVoltage = 0
         dac488.write('*RX')
         time.sleep(2)
 
@@ -23,8 +24,9 @@ class device:
         # vrange does not mean the literal voltage range!!!
         # 1,2,3,4 correspond to 1V, 2V, 5V, 10V bipolar
         
-    def set_voltage(self,port,voltage):
+    def set_voltage(self,voltage,port=1):
         dac488 = self.name
+        self.currentVoltage = voltage
         dac488.write("P" + str(port))
         dac488.write("V" + str(voltage))
         dac488.write("X")
