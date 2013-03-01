@@ -50,8 +50,8 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         
         self.fig = self.mplwidget.figure
         self.ax = self.mplwidget.axes
-        self.axR = self.ax.twinx()
-
+        self.axR = self.mplwidget.axesR
+       
         self.ax.tick_params(axis='x', labelsize=8)
         self.ax.tick_params(axis='y', labelsize=8)
         self.axR.tick_params(axis='x', labelsize=8)
@@ -87,13 +87,15 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.fileMenu = self.menuBar().addMenu("File")        
         self.fileMenu.addAction("Load settings", self.load_settings_dialog)
         self.fileMenu.addAction("Save settings", self.save_settings_dialog)
-        self.fileMenu.addAction("Print Figure", self.print_figure)
-        
+        self.fileMenu.addAction("Print Figure", self.print_figure)       
         self.fileMenu.addAction("Refresh Instrument List", self.refresh_instrument_list)
+        
         self.plotMenu = self.menuBar().addMenu("&Plot")
         self.plotMenu.addAction("Save Figure", self.save_figure)
-     
-    
+        self.plotMenu.addAction("Turn Pan/Zoom Left Axes On", self.mplwidget.toggle_left_axes)
+        self.plotMenu.addAction("Turn Pan/Zoom Right Axes On", self.mplwidget.toggle_right_axes)
+        
+
     def refresh_instrument_list(self):
         try:
             self.AVAILABLE_PORTS = visa.get_instruments_list()
@@ -254,25 +256,23 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         first = 0
         if self.history_length:
             first = max(0, self.data_array.shape[0] - self.history_length)
-            
+
         for chan_Y, [line_L, line_R] in enumerate(zip (self.ax.lines, self.axR.lines)):
             if self.checkBox_Y[chan_Y].isChecked() and self.data_array.size > 0:
-                line_L.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])
+                line_L.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y] / 10**self.mplwidget.left_pow)
             else:
                 line_L.set_data([],[])
                 
             if self.checkBox_YR[chan_Y].isChecked() and self.data_array.size > 0:
-                line_R.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])
+                line_R.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y] / 10**self.mplwidget.right_pow)
             else:
                 line_R.set_data([],[])
                 
-        self.ax.relim()
-        self.ax.autoscale_view() 
-        self.axR.relim()
-        self.axR.autoscale_view()                      
-        self.fig.canvas.draw()
+        self.mplwidget.rescale_and_draw()
 
-                 
+
+            
+             
     @pyqtSignature("")
     def on_startStopButton_clicked(self):
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python  
 from visa import *
-import string, os, sys, time  
+import string, os, sys, time, random  
       
 class SRS830:  
     def __init__(self, name, debug = False):  
@@ -76,7 +76,7 @@ class SRS830:
             self.srs.write ('OUTP? ' + str(num))
             return float(self.srs.read())    
         else:
-            return 1.23e-4
+            return 1.23e-4 * random.random()
 
     def close(self):  
         self.srs.close()  
