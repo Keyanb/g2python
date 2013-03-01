@@ -3,11 +3,16 @@
 Created on Sat Jun 16 13:18:32 2012
 
 @author: Benjamin Schmidt
+
+TODO:
+    - add toolbar for plot navigation
+    - more descriptive output in print 
+        
 """
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4 import QtCore, QtGui, QtSvg
+from PyQt4.QtSvg import *
 import ui_recordsweep_full as ui_recordsweep
 
 import visa
@@ -105,20 +110,20 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.AVAILABLE_PORTS = ["GPIB::8", "GPIB::9", "GPIB::26"]        
         
     def save_figure(self):
-        self.fig.savefig(str(QtGui.QFileDialog.getSaveFileName(self, 'Open settings file', './')))
+        self.fig.savefig(str(QFileDialog.getSaveFileName(self, 'Open settings file', './')))
 
     def save_settings_dialog(self):
-        self.save_settings(str(QtGui.QFileDialog.getSaveFileName(self, 'Save settings file as', './')))
+        self.save_settings(str(QFileDialog.getSaveFileName(self, 'Save settings file as', './')))
         
     def load_settings_dialog(self):                      
-        self.load_settings(QtGui.QFileDialog.getOpenFileName(self, 'Open settings file', './'))
+        self.load_settings(QFileDialog.getOpenFileName(self, 'Open settings file', './'))
 
     def print_figure(self):
         printer = QPrinter()
         
         dlg = QPrintDialog(printer)
         
-        if(dlg.exec_()!= QtGui.QDialog.Accepted):
+        if(dlg.exec_()!= QDialog.Accepted):
              return
              
         p = QPainter(printer)
@@ -144,11 +149,12 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         # Put a legend to the right of the current axis
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-        fig2.savefig("temp.png", dpi=dpi*3)
+        fig2.savefig("temp.png", dpi=dpi*3) #not sure why putting dpi=dpi makes it all pixelly
         
         margin_top = 0.5*dpi
         margin_left = 0.5*dpi       
         
+        #matplotlib's svg rendering has a bug if the data extends beyond the plot limits
         #svg = QtSvg.QSvgRenderer("temp.svg")
         #svg.render(p, QRectF(margin_top,margin_left, 8*dpi, 5*dpi))
 
