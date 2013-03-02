@@ -7,23 +7,26 @@ Created on Sat Jun 16 13:18:32 2012
 TODO:
     - add toolbar for plot navigation
     - more descriptive output in print 
-        
+    - disable appropriate inputs when acquisition starts
+    - end thread more gracefully    
+    - move instrument objects to main thread / shared?
 """
+
+from __future__ import division
+import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSvg import *
-import ui_recordsweep_full as ui_recordsweep
+
+import numpy as np
+from pylab import *
 
 import visa
 
-import time
-import numpy as np
-import readconfigfile
-
+import ui_recordsweep_full as ui_recordsweep
 import DataTakerThread as DTT
-
-from pylab import *
+import readconfigfile
 
 try:
     _fromUtf8 = QString.fromUtf8
@@ -56,12 +59,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.fig = self.mplwidget.figure
         self.ax = self.mplwidget.axes
         self.axR = self.mplwidget.axesR
-       
-        self.ax.tick_params(axis='x', labelsize=8)
-        self.ax.tick_params(axis='y', labelsize=8)
-        self.axR.tick_params(axis='x', labelsize=8)
-        self.axR.tick_params(axis='y', labelsize=8)
-        
+
         self.fig.canvas.draw()              
         
         self.history_length = 0
@@ -84,41 +82,155 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         self.data_array = array([])
         self.chan_X = 0
         
-        self.refresh_instrument_list()
+        self.refreshInstrumentList()
         
         self.load_settings("default_settings.txt")
         self.tabWidget.setCurrentIndex(0)
         
-        self.fileMenu = self.menuBar().addMenu("File")        
-        self.fileMenu.addAction("Load settings", self.load_settings_dialog)
-        self.fileMenu.addAction("Save settings", self.save_settings_dialog)
-        self.fileMenu.addAction("Print Figure", self.print_figure)       
-        self.fileMenu.addAction("Refresh Instrument List", self.refresh_instrument_list)
+        self.fileSaveSettingsAction = self.createAction("Save Settings", slot=self.fileSaveSettings, shortcut=QKeySequence.SaveAs,
+                                        icon=None, tip="Save the current instrument settings")
+        
+        self.fileLoadSettingsAction = self.createAction("Load Settings", slot=self.fileLoadSettings, shortcut=QKeySequence.Open,
+                                        icon=None, tip="Load instrument settings from file")               
+        
+        self.fileSaveFigAction = self.createAction("&Save Figure", slot=self.fileSaveFig, shortcut=QKeySequence.Save,
+                                        icon=None, tip="Save the current figure")      
+        
+        self.filePrintAction = self.createAction("&Print Report", slot=self.filePrint, shortcut=QKeySequence.Print,
+                                        icon=None, tip="Print the figure along with relevant information")                   
+        
+        self.plotToggleControlLAction = self.createAction("Toggle &Left Axes Control", slot=self.toggleControlL, shortcut=QKeySequence("Ctrl+L"),
+                                        icon="toggleLeft", tip="Toggle whether the mouse adjusts Left axes pan and zoom", checkable=True)                   
+
+        self.plotToggleControlRAction = self.createAction("Toggle &Right Axes Control", slot=self.toggleControlR, shortcut=QKeySequence("Ctrl+R"),
+                                        icon="toggleRight", tip="Toggle whether the mouse adjusts right axes pan and zoom", checkable=True)                   
+
+        self.plotToggleXControlAction = self.createAction("Toggle &X Axes Control", slot=self.toggleXControl, shortcut=QKeySequence("Ctrl+X"),
+                                        icon="toggleX", tip="Toggle whether the mouse adjusts x axis pan and zoom", checkable=True)                   
+         
+                    
+        self.plotAutoScaleXAction = self.createAction("Auto Scale X", slot=self.toggleAutoScaleX, shortcut=QKeySequence("Ctrl+A"),
+                                        icon="toggleAutoScaleX", tip="Turn autoscale X on or off", checkable=True)                   
+                    
+        self.plotAutoScaleLAction = self.createAction("Auto Scale L", slot=self.toggleAutoScaleL, shortcut=QKeySequence("Ctrl+D"),
+                                        icon="toggleAutoScaleL", tip="Turn autoscale Left Y on or off", checkable=True)                   
+
+        self.plotAutoScaleRAction = self.createAction("Auto Scale R", slot=self.toggleAutoScaleR, shortcut=QKeySequence("Ctrl+E"),
+                                        icon="toggleAutoScaleR", tip="Turn autoscale Right Y on or off", checkable=True)                   
+                            
+        
+        self.fileMenu = self.menuBar().addMenu("File")  
+
+        self.fileMenu.addAction(self.fileLoadSettingsAction)
+        self.fileMenu.addAction(self.fileSaveSettingsAction)
+        self.fileMenu.addAction(self.filePrintAction)       
+        self.fileMenu.addAction("Refresh Instrument List", self.refreshInstrumentList)
+        self.fileMenu.addAction(self.fileSaveFigAction)
+
         
         self.plotMenu = self.menuBar().addMenu("&Plot")
-        self.plotMenu.addAction("Save Figure", self.save_figure)
-        self.plotMenu.addAction("Turn Pan/Zoom Left Axes On", self.mplwidget.toggle_left_axes)
-        self.plotMenu.addAction("Turn Pan/Zoom Right Axes On", self.mplwidget.toggle_right_axes)
         
+        self.plotMenu.addAction(self.plotToggleXControlAction)
+        self.plotMenu.addAction(self.plotToggleControlLAction)
+        self.plotMenu.addAction(self.plotToggleControlRAction)
 
-    def refresh_instrument_list(self):
+        self.plotMenu.addAction(self.plotAutoScaleXAction)    
+        self.plotMenu.addAction(self.plotAutoScaleLAction)  
+        self.plotMenu.addAction(self.plotAutoScaleRAction)
+        
+        plotToolbar = self.addToolBar("Plot")
+        plotToolbar.addAction(self.plotToggleXControlAction)
+        plotToolbar.addAction(self.plotToggleControlLAction)
+        plotToolbar.addAction(self.plotToggleControlRAction)
+
+        plotToolbar.addAction(self.plotAutoScaleXAction)
+        plotToolbar.addAction(self.plotAutoScaleLAction)
+        plotToolbar.addAction(self.plotAutoScaleRAction)
+
+    def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None, checkable=False, signal="triggered()"):     
+        action = QAction(text, self)
+        if icon is not None:
+            action.setIcon(QIcon("./images/%s.png" % icon))
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        if tip is not None:
+            action.setToolTip(tip)
+            action.setStatusTip(tip)
+        if slot is not None:
+            self.connect(action, SIGNAL(signal), slot)
+        if checkable:
+            action.setCheckable(True)
+        return action
+        
+        
+    def refreshInstrumentList(self):
         try:
             self.AVAILABLE_PORTS = visa.get_instruments_list()
         except visa.VisaIOError as e:
             if e.error_code == -1073807343:
                 print "GPIB does not seem to be connected"
             self.AVAILABLE_PORTS = ["GPIB::8", "GPIB::9", "GPIB::26"]        
-        
-    def save_figure(self):
-        self.fig.savefig(str(QFileDialog.getSaveFileName(self, 'Open settings file', './')))
+    
+    def toggleAutoScaleX(self):
+        if self.plotAutoScaleXAction.isChecked():
+            self.plotToggleXControlAction.setChecked(False)   
+        else:
+            self.plotToggleXControlAction.setChecked(True)    
+        self.updateZoomSettings()
 
-    def save_settings_dialog(self):
-        self.save_settings(str(QFileDialog.getSaveFileName(self, 'Save settings file as', './')))
-        
-    def load_settings_dialog(self):                      
-        self.load_settings(QFileDialog.getOpenFileName(self, 'Open settings file', './'))
+    def toggleAutoScaleL(self):
+        if self.plotAutoScaleLAction.isChecked():
+            self.plotToggleControlLAction.setChecked(False)            
+        else:
+            self.plotToggleControlLAction.setChecked(True)              
+        self.updateZoomSettings()
 
-    def print_figure(self):
+    def toggleAutoScaleR(self):
+        if self.plotAutoScaleRAction.isChecked():
+            self.plotToggleControlRAction.setChecked(False)            
+        else:       
+            self.plotToggleControlRAction.setChecked(True)      
+        self.updateZoomSettings()
+        
+    def toggleXControl(self):
+        if self.plotToggleXControlAction.isChecked():
+            self.plotAutoScaleXAction.setChecked(False)             
+        self.updateZoomSettings()
+            
+    def toggleControlL(self):
+        if self.plotToggleControlLAction.isChecked():
+            self.plotAutoScaleLAction.setChecked(False)               
+        self.updateZoomSettings()
+         
+    def toggleControlR(self):
+        if self.plotToggleControlLAction.isChecked():
+            self.plotAutoScaleRAction.setChecked(False)             
+        self.updateZoomSettings()
+            
+    def updateZoomSettings(self):
+        self.mplwidget.setActiveAxes(self.plotToggleXControlAction.isChecked(), 
+                                     self.plotToggleControlLAction.isChecked(), 
+                                     self.plotToggleControlRAction.isChecked())        
+        self.ax.set_autoscalex_on(self.plotAutoScaleXAction.isChecked())
+        self.ax.set_autoscaley_on(self.plotAutoScaleLAction.isChecked())
+        self.axR.set_autoscaley_on(self.plotAutoScaleRAction.isChecked())        
+        
+    def fileSaveFig(self):
+        fname = str(QFileDialog.getSaveFileName(self, 'Open settings file', './'))
+        if fname:
+            self.fig.savefig(fname)
+
+    def fileSaveSettings(self):
+        fname = str(QFileDialog.getSaveFileName(self, 'Save settings file as', './'))
+        if fname:
+            self.save_settings(fname)
+        
+    def fileLoadSettings(self):  
+        fname = str(QFileDialog.getOpenFileName(self, 'Open settings file', './'))       
+        if fname:
+            self.load_settings(fname)
+
+    def filePrint(self):
         printer = QPrinter()
         
         dlg = QPrintDialog(printer)
