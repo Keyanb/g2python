@@ -15,6 +15,7 @@ from PyQt4 import QtCore, QtGui, QtSvg
 import bramplot
 import visa
 from conductance_calculator import *
+from math import *
 
 import LS340
 import time, os, errno
@@ -33,10 +34,13 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.setupUi(self)
         self.datataker = DataTaker(self)
         
-        self.xdata = []
-        self.y1data = []
+        # Set the data lists
+        self.freqData = []
+        self.ampData = []
+        self.phaseData = []
         self.data_array = array([])
         
+        # Setting up first plot
         self.ax = self.mplwidget.axes
         self.fig = self.mplwidget.figure
         self.ax.tick_params(axis='x', labelsize=8)
@@ -47,7 +51,21 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         
         self.ax.set_title('Frequency Response')
         self.ax.set_xlabel('Frequency(hz)')
-        self.ax.set_ylabel('Voltage(V)')
+        self.ax.set_ylabel('Amplitude(dB)')
+        
+        # Setting up second plot
+        self.ax2 = self.mplwidget_2.axes
+        self.fig2 = self.mplwidget_2.figure
+        self.ax2.tick_params(axis='x', labelsize=8)
+        self.ax2.tick_params(axis='y', labelsize=8)
+        self.fig2.canvas.draw()
+        self.line2, = self.ax.plot([],[])
+        #self.ax.lines = line
+        
+        self.ax2.set_title('Frequency Response')
+        self.ax2.set_xlabel('Frequency(hz)')
+        self.ax2.set_ylabel('Amplitude(dB)')
+        
         
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"), self.updateData)
         path = self.selectFile()
@@ -56,17 +74,25 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.datataker.start()
         
     def updateData(self, data_set):
-        print data_set
-        self.xdata.append(data_set[0])
-        self.y1data.append(data_set[1])
+        stri = str(data_set).strip('[]')
+        print stri
+        self.freqData.append(data_set[0])
+        self.ampData.append(data_set[3])
+        self.phaseData.append(data_set[4])
         self.updatePlot()
         
     def updatePlot(self):
-        self.line.set_data(self.xdata,self.y1data)
+        # update plot 1
+        self.line.set_data(self.freqData,self.ampData)
         self.ax.relim()
         self.ax.autoscale_view()                      
         self.fig.canvas.draw()
         
+        # update plot 2
+        self.line2.set_data(self.freqData,self.phaseData)
+        self.ax2.relim()
+        self.ax2.autoscale_view()                      
+        self.fig2.canvas.draw()
         
     def selectFile(self):
         
@@ -134,7 +160,7 @@ class DataTaker(QThread):
         
                 
         self.data_file = open (self.path,'w')
-        self.headers = ['Frequency', 'x-Value', 'y-Value']
+        self.headers = ['Frequency', 'x-Value', 'y-Value', 'Amplitude(dB)', 'Phase(deg)']
         stri = ''
         for i in self.headers:
             stri = stri + str(i) +'\t'
@@ -155,8 +181,12 @@ class DataTaker(QThread):
         frequencies = numpy.logspace(1,5,100)
         n = len(frequencies)
         self.lockin.set_freq(frequencies[0])
+        print 'Starting in...'
+        self.printCountdown(15)
+        # wait for things to stabilize
         xo = self.lockin.read_input(1)
         yo = self.lockin.read_input(2)
+        self.ro = self.lockin.read_input(3)
         
         for i in range(0,n-1):
            self.lockin.set_freq(frequencies[i])
@@ -166,19 +196,24 @@ class DataTaker(QThread):
         print "Measurement Complete!"
         
         
-    def ReadData(self,freq):
+    def ReadData(self,ctrlVar):
         '''
         This function reads the data, sends it to the GUI and writes it to the 
         file. The data should be sent with the x-value as the first number
         and all the dependent variables following. Make sure to include all
         the data you want (such as the calculated conductance)
         '''
+        freq = ctrlVar
         # Read the various Values
         xValue = float(self.lockin.read_input(1))
         yValue = float(self.lockin.read_input(2))
+        rValue = float(self.lockin.read_input(3))
+        phase = float(self.lockin.read_input(4))
+        
+        amp = self.amplitudeDB(rValue)
         
         # Compile values into a list
-        self.dataPoint = [freq, xValue, yValue]
+        self.dataPoint = [freq, xValue, yValue, amp, phase]
         
         # Convert to a string for writing to file
         #stri = str(self.dataPoint).strip('[]')
@@ -199,7 +234,16 @@ class DataTaker(QThread):
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
-    def amplitudeDB(self,voltage):
+    def amplitudeDB(self,r):
+        amp = 20*log10(r/self.ro)
+        return amp
+        
+    def printCountdown(self,seconds):
+        for s in range(seonds,1):
+            print s
+            time.sleep(1)
+            
+    
         
         
         
