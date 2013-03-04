@@ -45,26 +45,26 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.fig = self.mplwidget.figure
         self.ax.tick_params(axis='x', labelsize=8)
         self.ax.tick_params(axis='y', labelsize=8)
-        self.fig.canvas.draw()
         self.line, = self.ax.plot([],[])
         #self.ax.lines = line
         
         self.ax.set_title('Frequency Response')
         self.ax.set_xlabel('Frequency(hz)')
         self.ax.set_ylabel('Amplitude(dB)')
+        self.fig.canvas.draw()
         
         # Setting up second plot
         self.ax2 = self.mplwidget_2.axes
         self.fig2 = self.mplwidget_2.figure
         self.ax2.tick_params(axis='x', labelsize=8)
         self.ax2.tick_params(axis='y', labelsize=8)
-        self.fig2.canvas.draw()
-        self.line2, = self.ax.plot([],[])
+        self.line2, = self.ax2.plot([],[])
         #self.ax.lines = line
         
         self.ax2.set_title('Frequency Response')
         self.ax2.set_xlabel('Frequency(hz)')
-        self.ax2.set_ylabel('Amplitude(dB)')
+        self.ax2.set_ylabel('Phase(degrees)')
+        self.fig2.canvas.draw()
         
         
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"), self.updateData)
@@ -167,7 +167,7 @@ class DataTaker(QThread):
         stri = stri + '\n'
         self.data_file.write(stri)
         self.dataPoint = []
-        
+        time.sleep(1)
         print "Initialization Complete"
         
     def run(self):
@@ -195,6 +195,7 @@ class DataTaker(QThread):
            
         print "Measurement Complete!"
         
+        self.data_file.close()
         
     def ReadData(self,ctrlVar):
         '''
@@ -228,6 +229,7 @@ class DataTaker(QThread):
         # Save data to dat_file
         self.data_file.write(stri)
         
+        
     def measurementRecord(self):
         '''
         This function is intended to save all the parameters and notes
@@ -239,8 +241,8 @@ class DataTaker(QThread):
         return amp
         
     def printCountdown(self,seconds):
-        for s in range(seonds,1):
-            print s
+        for s in range(seconds):
+            print seconds-s
             time.sleep(1)
             
     
