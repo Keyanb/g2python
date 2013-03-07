@@ -87,7 +87,19 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 i = instr_buttons.index(button)
                 instr = instr_configs[i]
                 
+        meas_buttons = [self.bodeplot,self.quantumwire,self.tempsweep]
+        meas_configs = ['Bode Plot','Wire Conductance','Temperature Sweep']
+        
+        for button in meas_buttons:
+            state = button.isChecked()
+            if state == True:
+                meas = meas_configs[meas_buttons.index(button)]
+                
+        self.ax.set_title(meas)
+        self.ax2.set_title(meas)
+                
         self.datataker.instr = instr
+        self.datataker.meas = meas
         # Clear the comboboxes
         self.xlist1.clear()
         self.xlist2.clear()
@@ -251,12 +263,17 @@ class DataTaker(QThread):
         self.path = None
         self.debug = True
         self.instr = 'VTI'
+        self.meas = 'Bode Plot'
         
     def run(self):
         print "Acquiring Data..."
         self.setup()
-        self.mainLoop()
-        self.safeStop()
+        
+        measurement = {'Bode Plot': self.bodePlot,
+                       'Wire Conductance':self.wireCond,
+                       'Temperature Sweep':self.tempSweep}
+                       
+        measurement[self.meas]()
         
     def setup(self):
         '''
@@ -271,21 +288,20 @@ class DataTaker(QThread):
                 
         self.data_file = open (self.path,'w')
         
+        time.sleep(1)
+        
+        print "Initialization Complete"
+        
+    def bodePlot(self):
+        '''
+        This is where the control logic of the program goes. Loops, parameter
+        changes and if statements should be located here.
+        '''
         self.headers = ['Frequency(hz)', 'x-Value', 'y-Value', 'Amplitude(dB)', 'Phase(deg)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
         stri = self.list2tabdel(self.headers)
         self.data_file.write(stri)
-        
-        time.sleep(1)
-        
-        print "Initialization Complete"
-        
-    def mainLoop(self):
-        '''
-        This is where the control logic of the program goes. Loops, parameter
-        changes and if statements should be located here.
-        '''
         
         frequencies = numpy.logspace(1,5,100)
         n = len(frequencies)
@@ -302,9 +318,11 @@ class DataTaker(QThread):
                 break
             self.lockin1.set_freq(frequencies[i])
             time.sleep(1)
-            self.ReadData(frequencies[i])
+            self.ReadFreqData(frequencies[i])
+            
+        self.data_file.close()
         
-    def ReadData(self,ctrlVar):
+    def ReadFreqData(self,ctrlVar):
         '''
         This function reads the data, sends it to the GUI and writes it to the 
         file. The data should be sent with the x-value as the first number
@@ -332,7 +350,86 @@ class DataTaker(QThread):
         dataDict = dict(zip(self.headers,dataPoint))
         self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
         
+    def wireCond(self):
         
+        self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Temperature (K)', 'Conductance(2e^2/h)']
+        self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
+        
+        stri = self.list2tabdel(self.headers)
+        self.data_file.write(stri)
+        
+        stepTime = 0.5
+        max_gate = -2
+        stepsize = 0.005
+        windowlower = -1.5
+        windowupper = -2.0
+        windowstep = 0.005
+        gateVoltage = 0.0
+        
+        while gateVoltage > max_gate:
+            if self.stop == True:
+                break
+            
+            self.gate.set_voltage(gateVoltage)
+            self.readCondData(gateVoltage)
+        
+            if (gateVoltage <= windowlower and gateVoltage >= windowupper):
+                gateVoltage = gateVoltage - windowstep
+            else:
+                gateVoltage = gateVoltage - stepsize  
+                
+            time.sleep(stepTime)
+        
+        while gateVoltage < 0:
+            if self.stop == True:
+                break
+            
+            self.gate.set_voltage(gateVoltage)
+            self.readCondData(gateVoltage)
+        
+            if (gateVoltage <= windowlower and gateVoltage >= windowupper):
+                gateVoltage = gateVoltage + windowstep
+            else:
+                gateVoltage = gateVoltage + stepsize  
+                
+            time.sleep(stepTime)
+        
+        self.gate.set_voltage(0)
+        
+        self.data_file.close()
+        
+    def readCondData(self,ctrlVar):
+        '''
+        This function reads the data, sends it to the GUI and writes it to the 
+        file. The data should be sent with the x-value as the first number
+        and all the dependent variables following. Make sure to include all
+        the data you want (such as the calculated conductance)
+        '''
+        # Read the various Values
+        xValue1 = float(self.lockin1.read_input(1))
+        xValue2 = float(self.lockin2.read_input(1))
+        yValue1 = float(self.lockin1.read_input(2))
+        yValue2 = float(self.lockin2.read_input(1))
+        
+        temp = float(self.temp.read('C'))
+        gateVoltage = ctrlVar
+        conductance = twopointcond(xValue1)
+        
+        # Compile values into a list
+        dataPoint = [gateVoltage, xValue1, yValue1, xValue2, yValue2, temp, conductance]
+        
+        # Convert to a string for writing to file
+        stri = self.list2tabdel(dataPoint)
+        self.data_file.write(stri)
+        
+        # Create a dictionary for the data point and send signal to GUI    
+        dataDict = dict(zip(self.headers,dataPoint))
+        self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
+        
+        
+    def tempSweep(self):
+        '''
+        '''
         
     def measurementRecord(self):
         '''
@@ -353,8 +450,6 @@ class DataTaker(QThread):
         
         instrDict[self.instr](self.debug)
                 
-                
-        
     def VTI_instr(self,debug=False):
         print "Initializing VTI Instruments..."
         self.lockin1 = SRS830.SRS830('GPIB1::14',debug)
@@ -404,8 +499,6 @@ class DataTaker(QThread):
 
         print "Measurement Complete!"        
         print "Safely shutting down instruments..."
-        
-        self.data_file.close()
         
         
 if __name__ == "__main__":

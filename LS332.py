@@ -7,7 +7,7 @@ Lakeshore 332 Driver
 from visa import *
 import string, os, sys, time, random
       
-class device:  
+class LS332:  
     def __init__(self, name, debug = False):  
         self.debug = debug
         if self.debug == False:
