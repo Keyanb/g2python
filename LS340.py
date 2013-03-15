@@ -5,14 +5,19 @@ Lakeshore 332 Driver
 @author: Bram
 """
 from visa import *
-import string, os, sys, time  
+import string, os, sys, time, random
       
-class device:  
-    def __init__(self, name):  
-        self.name = instrument(name)
-        lak340 = self.name
-        print lak340.ask('*IDN?')
+class LS340:  
+    def __init__(self, name, debug=False): 
+        self.debug = debug
+        if self.debug == False:
+            self.name = instrument(name)
+            lak340 = self.name
+            print lak340.ask('*IDN?')
     
     def read(self, input):
-        lak340 = self.name
-        return lak340.ask('SRDG?'+str(input))
+        if self.debug == False:
+            lak340 = self.name
+            return lak340.ask('SRDG?'+str(input))
+        else:
+            return random.random()

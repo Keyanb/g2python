@@ -45,11 +45,6 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.line, = self.ax.plot([],[])
         #self.ax.lines = line
         
-        self.ax.set_title('Frequency Response')
-        self.ax.set_xlabel('Frequency(hz)')
-        self.ax.set_ylabel('Amplitude(dB)')
-        self.fig.canvas.draw()
-        
         # Setting up second plot
         self.ax2 = self.mplwidget_2.axes
         self.fig2 = self.mplwidget_2.figure
@@ -58,11 +53,6 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.line2, = self.ax2.plot([],[])
         #self.ax.lines = line
         
-        self.ax2.set_title('Frequency Response')
-        self.ax2.set_xlabel('Frequency(hz)')
-        self.ax2.set_ylabel('Phase(degrees)')
-        self.fig2.canvas.draw()          
-        
         # Slots
         self.connect(self.datataker, SIGNAL("list(PyQt_PyObject)"), self.listHeaders)
         self.connect(self.datataker, SIGNAL("dataD(PyQt_PyObject)"), self.updateDataD)
@@ -70,7 +60,14 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.connect(self.xlist2, SIGNAL('activated(QString)'), self.updatePlotD)
         self.connect(self.ylist1, SIGNAL('activated(QString)'), self.updatePlotD)
         self.connect(self.ylist2, SIGNAL('activated(QString)'), self.updatePlotD)
-        #
+        
+        # Get the computer name
+        
+        self.computer = os.environ['COMPUTERNAME']
+        print self.computer
+        
+#        self.timer = QTimer(self)
+#        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.updatePlotD)
         
     @pyqtSignature("")
     def on_startButton_clicked(self):
@@ -109,6 +106,9 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         
         self.datataker.path = path
         self.datataker.start()
+        
+#        time.sleep(1)
+#        self.timer.start(100)
         
     @pyqtSignature("")
     def on_stopButton_clicked(self):
@@ -178,6 +178,9 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.ax.set_ylabel(var)
         
         self.line.set_data(xdata,ydata)
+
+        #self.zoom_factory(self.ax)
+        
         self.ax.relim()
         self.ax.autoscale_view()                      
         self.fig.canvas.draw()
@@ -249,7 +252,13 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 else: raise
                 
         date = time.strftime('%d-%m-%y',time.localtime())
-        path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
+        
+        if self.computer == '293-PCZ156':
+            path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        else:
+            path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
+            
+            
         mkdir_p(path)
         folderPath = QFileDialog.getExistingDirectory(self,'Choose Data Folder',path)
         
@@ -261,7 +270,7 @@ class DataTaker(QThread):
     def __init__(self, parent=None):
         super(DataTaker, self).__init__(parent)
         self.path = None
-        self.debug = True
+        self.debug = False
         self.instr = 'VTI'
         self.meas = 'Bode Plot'
         
@@ -393,7 +402,16 @@ class DataTaker(QThread):
                 gateVoltage = gateVoltage + stepsize  
                 
             time.sleep(stepTime)
+            
+        # Loop to slowly reduce gate
         
+        if self.stop == True:        
+            while gateVoltage < 0:
+                gateVoltage += 0.001
+                self.gate.setvoltage(gateVoltage)
+                # 0.1 delay corresponds to 1:40 per volt (assuming 0.001 step)
+                time.wait(0.2)
+                
         self.gate.set_voltage(0)
         
         self.data_file.close()
@@ -429,7 +447,48 @@ class DataTaker(QThread):
         
     def tempSweep(self):
         '''
+        This script just monitors the instruments, generally for a temperature
+        sweep, but it could be adapted to othe purposes fairly easily
         '''
+        self.headers = ['Temperature-A (K)', 'Temperature-B (K)','x-Value', 'y-Value',  'x-Value-2', 'y-Value-2','Time(s)']
+        self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
+        
+        stri = self.list2tabdel(self.headers)
+        self.data_file.write(stri)
+        
+        self.t_start = time.time()
+        timestep = 1 #(s)
+        temperatures = [self.temp.read('a'),self.temp.read('b')]
+        
+        while temperatures[1]>1.8:
+            temperatures = self.readTempData()
+            step = step+1
+            #Wait until the enxt timestep
+            while (time.time()-t_start)<step:
+                wait=1
+                
+    
+    def readTempData(self):
+        t = float(time.time() - self.t_start)
+        xValue1 = float(self.lockin1.read_input(1))
+        xValue2 = float(self.lockin2.read_input(1))
+        yValue1 = float(self.lockin1.read_input(2))
+        yValue2 = float(self.lockin2.read_input(1))
+        # gate = gate
+        temperatureA = float(self.temp.read('a'))
+        temperatureB = float(self.temp.read('b'))
+        dataPoint = [temperatureA, temperatureB, xValue1, yValue1, xValue2, yValue2, t]
+        
+        # Convert to a string for writing to file
+        stri = self.list2tabdel(dataPoint)
+        self.data_file.write(stri)
+        
+        # Create a dictionary for the data point and send signal to GUI    
+        dataDict = dict(zip(self.headers,dataPoint))
+        self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
+        
+        # return temperatures since they are the control variables
+        return [temperatureA,temperatureB]
         
     def measurementRecord(self):
         '''
@@ -473,10 +532,17 @@ class DataTaker(QThread):
         '''
         Custom Instrument Setup
         '''
-    def debug_instr(self,debug=False):
+    def debug_instr(self,debug=True):
         '''
         debug 
         '''
+        debug = True
+        
+        print "Initializing Debug Instruments..."
+        self.lockin1 = SRS830.SRS830('GPIB1::14',debug)
+        self.lockin2 = SRS830.SRS830('GPIB1::8',debug)
+        self.gate = keithley2400.device('GPIB1::24',debug)
+        self.temp = LS332.LS332('GPIB1::12',debug)
         
     def amplitudeDB(self,r):
         amp = 20*log10(r/self.ro)

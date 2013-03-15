@@ -145,7 +145,7 @@ class DataTaker(QThread):
         print "Acquiring Data..."
         
         stepTime = 0.5
-        max_gate = -2
+        max_gate = -7
         stepsize = 0.005
         windowlower = -1.5
         windowupper = -2.0

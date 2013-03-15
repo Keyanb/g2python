@@ -73,6 +73,9 @@ class SRS830:
             self.srs.write ('AUXV ' + str(chan) + ", " + str(volts))       
     
     def read_input (self, num):
+        '''
+        Reads the specificed input of the lockin. 1=x, 2=y, 3=r, 4=phase
+        '''
         if self.debug == False:
             self.srs.write ('OUTP? ' + str(num))
             return float(self.srs.read())    
