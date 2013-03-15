@@ -46,7 +46,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         #self.ax.lines = line
         
         # Setting up second plot
-        self.ax2 = self.mplwidget_2.axes
+        self.ax2 = self.mplwidget_2.axesR
         self.fig2 = self.mplwidget_2.figure
         self.ax2.tick_params(axis='x', labelsize=8)
         self.ax2.tick_params(axis='y', labelsize=8)
@@ -170,6 +170,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         updatePlot method, but harder to understand.
         '''
         # Update plot 1
+        self.ax.set_autoscalex_on(True)
         var = str(self.xlist1.currentText())
         xdata = self.data[var]
         self.ax.set_xlabel(var)
@@ -178,12 +179,11 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.ax.set_ylabel(var)
         
         self.line.set_data(xdata,ydata)
+        self.mplwidget.rescale_and_draw()
 
-        #self.zoom_factory(self.ax)
-        
-        self.ax.relim()
-        self.ax.autoscale_view()                      
-        self.fig.canvas.draw()
+#       self.ax.relim()
+#       self.ax.autoscale_view()  
+#       self.fig.canvas.draw()
         
         # Update Plot 2
         var = str(self.xlist2.currentText())
@@ -203,7 +203,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         # update plot 1
         self.line.set_data(self.freqData,self.ampData)
         self.ax.relim()
-        self.ax.autoscale_view()                      
+        self.ax.autoscale_view()    
         self.fig.canvas.draw()
         
         # update plot 2

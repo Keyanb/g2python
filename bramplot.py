@@ -8,6 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from mplZoomWidget import MatplotlibZoomWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -27,10 +28,10 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtGui.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.mplwidget = MatplotlibWidget(self.layoutWidget)
+        self.mplwidget = MatplotlibZoomWidget(self.layoutWidget)
         self.mplwidget.setObjectName(_fromUtf8("mplwidget"))
         self.verticalLayout.addWidget(self.mplwidget)
-        self.mplwidget_2 = MatplotlibWidget(self.layoutWidget)
+        self.mplwidget_2 = MatplotlibZoomWidget(self.layoutWidget)
         self.mplwidget_2.setObjectName(_fromUtf8("mplwidget_2"))
         self.verticalLayout.addWidget(self.mplwidget_2)
         self.startButton = QtGui.QPushButton(self.centralwidget)
@@ -134,4 +135,3 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         pass
 
-from matplotlibwidget import MatplotlibWidget
