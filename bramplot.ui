@@ -32,37 +32,11 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="startButton">
-    <property name="geometry">
-     <rect>
-      <x>780</x>
-      <y>10</y>
-      <width>121</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Start</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="stopButton">
-    <property name="geometry">
-     <rect>
-      <x>780</x>
-      <y>35</y>
-      <width>121</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Stop</string>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
       <x>780</x>
-      <y>200</y>
+      <y>280</y>
       <width>120</width>
       <height>80</height>
      </rect>
@@ -117,7 +91,7 @@
     <property name="geometry">
      <rect>
       <x>780</x>
-      <y>70</y>
+      <y>150</y>
       <width>120</width>
       <height>121</height>
      </rect>
@@ -198,7 +172,7 @@
     <property name="geometry">
      <rect>
       <x>780</x>
-      <y>310</y>
+      <y>390</y>
       <width>120</width>
       <height>80</height>
      </rect>
@@ -257,7 +231,7 @@
     <property name="geometry">
      <rect>
       <x>780</x>
-      <y>400</y>
+      <y>480</y>
       <width>120</width>
       <height>80</height>
      </rect>
@@ -312,19 +286,39 @@
      </property>
     </widget>
    </widget>
-   <zorder>layoutWidget</zorder>
-   <zorder>startButton</zorder>
-   <zorder>xlist1</zorder>
-   <zorder>label</zorder>
-   <zorder>label_2</zorder>
-   <zorder>ylist1</zorder>
-   <zorder>splitter_2</zorder>
-   <zorder>stopButton</zorder>
-   <zorder>groupBox</zorder>
-   <zorder>groupBox_2</zorder>
-   <zorder>vtiButton</zorder>
-   <zorder>groupBox_3</zorder>
-   <zorder>groupBox_4</zorder>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>782</x>
+      <y>20</y>
+      <width>121</width>
+      <height>83</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QPushButton" name="startButton">
+       <property name="text">
+        <string>Start</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stopButton">
+       <property name="text">
+        <string>Stop</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rescaleButton">
+       <property name="text">
+        <string>Rescale</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

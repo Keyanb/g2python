@@ -2,13 +2,12 @@
 
 # Form implementation generated from reading ui file 'bramplot.ui'
 #
-# Created: Wed Mar 06 15:57:14 2013
+# Created: Sat Mar 16 11:58:20 2013
 #      by: PyQt4 UI code generator 4.8.6
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from mplZoomWidget import MatplotlibZoomWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -34,16 +33,8 @@ class Ui_MainWindow(object):
         self.mplwidget_2 = MatplotlibZoomWidget(self.layoutWidget)
         self.mplwidget_2.setObjectName(_fromUtf8("mplwidget_2"))
         self.verticalLayout.addWidget(self.mplwidget_2)
-        self.startButton = QtGui.QPushButton(self.centralwidget)
-        self.startButton.setGeometry(QtCore.QRect(780, 10, 121, 20))
-        self.startButton.setText(QtGui.QApplication.translate("MainWindow", "Start", None, QtGui.QApplication.UnicodeUTF8))
-        self.startButton.setObjectName(_fromUtf8("startButton"))
-        self.stopButton = QtGui.QPushButton(self.centralwidget)
-        self.stopButton.setGeometry(QtCore.QRect(780, 35, 121, 20))
-        self.stopButton.setText(QtGui.QApplication.translate("MainWindow", "Stop", None, QtGui.QApplication.UnicodeUTF8))
-        self.stopButton.setObjectName(_fromUtf8("stopButton"))
         self.groupBox = QtGui.QGroupBox(self.centralwidget)
-        self.groupBox.setGeometry(QtCore.QRect(780, 200, 120, 80))
+        self.groupBox.setGeometry(QtCore.QRect(780, 280, 120, 80))
         self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Measurement", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
         self.bodeplot = QtGui.QRadioButton(self.groupBox)
@@ -60,7 +51,7 @@ class Ui_MainWindow(object):
         self.tempsweep.setText(QtGui.QApplication.translate("MainWindow", "Temperature", None, QtGui.QApplication.UnicodeUTF8))
         self.tempsweep.setObjectName(_fromUtf8("tempsweep"))
         self.groupBox_2 = QtGui.QGroupBox(self.centralwidget)
-        self.groupBox_2.setGeometry(QtCore.QRect(780, 70, 120, 121))
+        self.groupBox_2.setGeometry(QtCore.QRect(780, 150, 120, 121))
         self.groupBox_2.setTitle(QtGui.QApplication.translate("MainWindow", "Instruments", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
         self.he3Button = QtGui.QRadioButton(self.groupBox_2)
@@ -85,7 +76,7 @@ class Ui_MainWindow(object):
         self.debugButton.setText(QtGui.QApplication.translate("MainWindow", "Debug", None, QtGui.QApplication.UnicodeUTF8))
         self.debugButton.setObjectName(_fromUtf8("debugButton"))
         self.groupBox_3 = QtGui.QGroupBox(self.centralwidget)
-        self.groupBox_3.setGeometry(QtCore.QRect(780, 310, 120, 80))
+        self.groupBox_3.setGeometry(QtCore.QRect(780, 390, 120, 80))
         self.groupBox_3.setTitle(QtGui.QApplication.translate("MainWindow", "Top Plot Axes", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
         self.xlist1 = QtGui.QComboBox(self.groupBox_3)
@@ -103,7 +94,7 @@ class Ui_MainWindow(object):
         self.ylist1.setGeometry(QtCore.QRect(40, 50, 71, 20))
         self.ylist1.setObjectName(_fromUtf8("ylist1"))
         self.groupBox_4 = QtGui.QGroupBox(self.centralwidget)
-        self.groupBox_4.setGeometry(QtCore.QRect(780, 400, 120, 80))
+        self.groupBox_4.setGeometry(QtCore.QRect(780, 480, 120, 80))
         self.groupBox_4.setTitle(QtGui.QApplication.translate("MainWindow", "Bottom Plot Axes", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_4.setObjectName(_fromUtf8("groupBox_4"))
         self.label_3 = QtGui.QLabel(self.groupBox_4)
@@ -120,6 +111,24 @@ class Ui_MainWindow(object):
         self.ylist2 = QtGui.QComboBox(self.groupBox_4)
         self.ylist2.setGeometry(QtCore.QRect(40, 50, 69, 20))
         self.ylist2.setObjectName(_fromUtf8("ylist2"))
+        self.widget = QtGui.QWidget(self.centralwidget)
+        self.widget.setGeometry(QtCore.QRect(782, 20, 121, 83))
+        self.widget.setObjectName(_fromUtf8("widget"))
+        self.verticalLayout_2 = QtGui.QVBoxLayout(self.widget)
+        self.verticalLayout_2.setMargin(0)
+        self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
+        self.startButton = QtGui.QPushButton(self.widget)
+        self.startButton.setText(QtGui.QApplication.translate("MainWindow", "Start", None, QtGui.QApplication.UnicodeUTF8))
+        self.startButton.setObjectName(_fromUtf8("startButton"))
+        self.verticalLayout_2.addWidget(self.startButton)
+        self.stopButton = QtGui.QPushButton(self.widget)
+        self.stopButton.setText(QtGui.QApplication.translate("MainWindow", "Stop", None, QtGui.QApplication.UnicodeUTF8))
+        self.stopButton.setObjectName(_fromUtf8("stopButton"))
+        self.verticalLayout_2.addWidget(self.stopButton)
+        self.rescaleButton = QtGui.QPushButton(self.widget)
+        self.rescaleButton.setText(QtGui.QApplication.translate("MainWindow", "Rescale", None, QtGui.QApplication.UnicodeUTF8))
+        self.rescaleButton.setObjectName(_fromUtf8("rescaleButton"))
+        self.verticalLayout_2.addWidget(self.rescaleButton)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 908, 21))
@@ -135,3 +144,4 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         pass
 
+from mplZoomWidget import MatplotlibZoomWidget
