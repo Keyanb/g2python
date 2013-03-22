@@ -9,16 +9,10 @@ from PyQt4.QtGui import *
 import visa
 from conductance_calculator import *
 from math import *
-from collections import defaultdict
 
-import LS340
-import LS332
+import LS340, LS332, SRS830, DAC488, keithley2400
 import time, os, errno
-import threading
 import numpy
-import SRS830
-import DAC488
-import keithley2400
 
 class DataTaker(QThread):
     def __init__(self, parent=None):
@@ -34,7 +28,8 @@ class DataTaker(QThread):
         
         measurement = {'Bode Plot': self.bodePlot,
                        'Wire Conductance':self.wireCond,
-                       'Temperature Sweep':self.tempSweep}
+                       'Temperature Sweep':self.tempSweep,
+                       'Four Wire':self.fourWire}
                        
         measurement[self.meas]()
         
@@ -48,8 +43,6 @@ class DataTaker(QThread):
         self.instrumentSelect()
         
         self.stop = False
-                
-        self.data_file = open (self.path,'w')
         
         time.sleep(1)
         
@@ -60,6 +53,7 @@ class DataTaker(QThread):
         This is where the control logic of the program goes. Loops, parameter
         changes and if statements should be located here.
         '''
+        self.data_file = open (self.path,'w')
         self.headers = ['Frequency(hz)', 'x-Value', 'y-Value', 'Amplitude(dB)', 'Phase(deg)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
@@ -115,6 +109,7 @@ class DataTaker(QThread):
         
     def wireCond(self):
         
+        self.data_file = open (self.path,'w')
         self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Temperature (K)', 'Conductance(2e^2/h)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
@@ -198,12 +193,77 @@ class DataTaker(QThread):
         dataDict = dict(zip(self.headers,dataPoint))
         self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
         
+    def fourWire(self):
+        
+        self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Temperature (K)', 'Conductance(2e^2/h)']
+        self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
+        
+        headerString = self.list2tabdel(self.headers)
+        
+        
+        stepTime = 0.5
+        max_gate = -2
+        stepsize = 0.005
+        windowlower = -1.5
+        windowupper = -2.0
+        windowstep = 0.005
+        gateVoltage = 0.0
+        DACoput = 0
+        
+        for wire in ['Wire1','Wire2','Wire3','Wire4']:
+            self.data_file = open (self.path+wire+'.dat','w')
+            self.data_file.write(headerString)
+            DACoput += 1
+            
+            while gateVoltage > max_gate:
+                if self.stop == True:
+                    break
+                
+                self.gate.set_voltage(gateVoltage)
+                self.readCondData(gateVoltage)
+            
+                if (gateVoltage <= windowlower and gateVoltage >= windowupper):
+                    gateVoltage = gateVoltage - windowstep
+                else:
+                    gateVoltage = gateVoltage - stepsize  
+                    
+                time.sleep(stepTime)
+            
+            while gateVoltage < 0:
+                if self.stop == True:
+                    break
+                
+                self.gate.set_voltage(gateVoltage)
+                self.readCondData(gateVoltage)
+            
+                if (gateVoltage <= windowlower and gateVoltage >= windowupper):
+                    gateVoltage = gateVoltage + windowstep
+                else:
+                    gateVoltage = gateVoltage + stepsize  
+                    
+                time.sleep(stepTime)
+                
+            # Loop to slowly reduce gate
+            
+            if self.stop == True:        
+                while gateVoltage < 0:
+                    gateVoltage += 0.001
+                    self.gate.setvoltage(gateVoltage)
+                    # 0.1 delay corresponds to 1:40 per volt (assuming 0.001 step)
+                    time.wait(0.2)
+                    
+            self.gate.set_voltage(0)
+            
+            self.data_file.close()
+            self.emit(SIGNAL("clear(PyQt_PyObject)"))
+        
         
     def tempSweep(self):
         '''
         This script just monitors the instruments, generally for a temperature
         sweep, but it could be adapted to othe purposes fairly easily
         '''
+        self.data_file = open (self.path,'w')
         self.headers = ['Temperature-A (K)', 'Temperature-B (K)','x-Value', 'y-Value',  'x-Value-2', 'y-Value-2','Time(s)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
@@ -239,7 +299,7 @@ class DataTaker(QThread):
         
         # Create a dictionary for the data point and send signal to GUI    
         dataDict = dict(zip(self.headers,dataPoint))
-        self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
+        self.emit(SIGNAL("data(PyQt_PyObject)"), dataDict)
         
         # return temperatures since they are the control variables
         return [temperatureA,temperatureB]
