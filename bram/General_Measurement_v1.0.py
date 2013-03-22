@@ -159,6 +159,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         
         
     def updateData(self, data_set):
+        print data_set
         for v in self.headers:
             self.data[v].append(data_set[v])
         self.updatePlot()
@@ -177,11 +178,10 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.ax.set_ylabel(var)
         
         self.line.set_data(xdata,ydata)
-        self.mplwidget.rescale_and_draw()
 
-#       self.ax.relim()
-#       self.ax.autoscale_view()  
-#       self.fig.canvas.draw()
+        self.ax.relim()
+        self.ax.autoscale_view()  
+        self.fig.canvas.draw()
         
         # Update Plot 2
         var = str(self.xlist2.currentText())
@@ -227,7 +227,12 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 else: raise
                 
         date = time.strftime('%d-%m-%y',time.localtime())
-        path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        
+        if self.computer == '293-PCZ156':
+            path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
+        else:
+            path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
+
         mkdir_p(path)
         filePath = QFileDialog.getSaveFileName(None,'Choose Data File',path)
         

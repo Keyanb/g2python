@@ -27,10 +27,10 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtGui.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.mplwidget = MatplotlibZoomWidget(self.layoutWidget)
+        self.mplwidget = MatplotlibWidget(self.layoutWidget)
         self.mplwidget.setObjectName(_fromUtf8("mplwidget"))
         self.verticalLayout.addWidget(self.mplwidget)
-        self.mplwidget_2 = MatplotlibZoomWidget(self.layoutWidget)
+        self.mplwidget_2 = MatplotlibWidget(self.layoutWidget)
         self.mplwidget_2.setObjectName(_fromUtf8("mplwidget_2"))
         self.verticalLayout.addWidget(self.mplwidget_2)
         self.groupBox = QtGui.QGroupBox(self.centralwidget)
@@ -148,4 +148,4 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         pass
 
-from mplZoomWidget import MatplotlibZoomWidget
+from matplotlibwidget import MatplotlibWidget

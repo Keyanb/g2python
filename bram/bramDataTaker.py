@@ -105,7 +105,7 @@ class DataTaker(QThread):
         
         # Create a dictionary for the data point and send signal to GUI    
         dataDict = dict(zip(self.headers,dataPoint))
-        self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
+        self.emit(SIGNAL("data(PyQt_PyObject)"), dataDict)
         
     def wireCond(self):
         
@@ -191,10 +191,10 @@ class DataTaker(QThread):
         
         # Create a dictionary for the data point and send signal to GUI    
         dataDict = dict(zip(self.headers,dataPoint))
-        self.emit(SIGNAL("dataD(PyQt_PyObject)"), dataDict)
+        self.emit(SIGNAL("data(PyQt_PyObject)"), dataDict)
         
     def fourWire(self):
-        
+                
         self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Temperature (K)', 'Conductance(2e^2/h)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
@@ -219,7 +219,7 @@ class DataTaker(QThread):
                 if self.stop == True:
                     break
                 
-                self.gate.set_voltage(gateVoltage)
+                self.gate.set_voltage(gateVoltage,DACoput)
                 self.readCondData(gateVoltage)
             
                 if (gateVoltage <= windowlower and gateVoltage >= windowupper):
@@ -233,7 +233,7 @@ class DataTaker(QThread):
                 if self.stop == True:
                     break
                 
-                self.gate.set_voltage(gateVoltage)
+                self.gate.set_voltage(gateVoltage,DACoput)
                 self.readCondData(gateVoltage)
             
                 if (gateVoltage <= windowlower and gateVoltage >= windowupper):
@@ -248,14 +248,15 @@ class DataTaker(QThread):
             if self.stop == True:        
                 while gateVoltage < 0:
                     gateVoltage += 0.001
-                    self.gate.setvoltage(gateVoltage)
+                    self.gate.setvoltage(gateVoltage,DACoput)
                     # 0.1 delay corresponds to 1:40 per volt (assuming 0.001 step)
                     time.wait(0.2)
                     
-            self.gate.set_voltage(0)
+            self.gate.set_voltage(0,DACoput)
             
             self.data_file.close()
             self.emit(SIGNAL("clear(PyQt_PyObject)"))
+            print 'Finished ' + wire
         
         
     def tempSweep(self):
@@ -310,6 +311,9 @@ class DataTaker(QThread):
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
+        self.measurement_record = open (self.path='_record.dat','w')
+                
+        
     def instrumentSelect(self):
         
         instrDict = {
@@ -328,6 +332,11 @@ class DataTaker(QThread):
         self.lockin1 = SRS830.SRS830('GPIB1::14',debug)
         self.lockin2 = SRS830.SRS830('GPIB1::8',debug)
         self.gate = keithley2400.device('GPIB1::24',debug)
+        self.gate = DAC488.DAC488('GPIB0::10',debug)
+        self.gate.set_range(4,1) # up to 10V
+        self.gate.set_range(4,2) # up to 10V 
+        self.gate.set_range(4,3) # up to 10V 
+        self.gate.set_range(4,4) # up to 10V 
         self.temp = LS332.LS332('GPIB1::12',debug)
         
     def He3_instr(self,debug=False):
@@ -335,7 +344,7 @@ class DataTaker(QThread):
         self.lockin1 = SRS830.SRS830('GPIB0::8',debug)
         self.lockin2 = SRS830.SRS830('GPIB0::16',debug)
         self.gate = DAC488.DAC488('GPIB0::10',debug)
-        self.gate.set_range(1,3)
+        self.gate.set_range(4,1) # up to 10V 
         self.temp = LS340.LS340('GPIB0::12',debug)
     
     def dil_instr(self,debug=False):
