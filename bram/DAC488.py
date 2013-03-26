@@ -4,8 +4,17 @@ Created on Tue May 22 09:51:19 2012
 Driver for DAC488
 @author: Bram
 """
+# import VISA if available
+try:
+    import visa # Import VISA
+    visa_available = True
+except ImportError:
+    visa_available = False
+    print 'VISA Unavailable'
+    
+if visa_available == True:
+    from visa import *  
 
-from visa import *  
 import string, os, sys, time, threading
       
 class DAC488:  
