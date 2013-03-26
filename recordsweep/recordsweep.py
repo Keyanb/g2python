@@ -272,7 +272,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
 
         p.drawImage(QRectF(margin_top,margin_left, 8*dpi, 5*dpi), QImage("temp.png", format='png'))
         p.drawText (margin_left, 700, "Data recorded to: " + self.out_file.name)
-                
+        print "about to send to printer"        
         p.end()           
            
     def load_settings(self, fname):
@@ -413,9 +413,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             print stri
             self.out_file.write(stri + '\n')  
             
-            type_list = [comboBox.currentText() for comboBox in self.comboBox_Type]
-            dev_list = [comboBox.currentText() for comboBox in self.comboBox_Instr] 
-            param_list = [comboBox.currentText() for comboBox in self.comboBox_Param]
+            type_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Type]
+            dev_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Instr] 
+            param_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Param]
 
             self.tabWidget.setCurrentIndex(1)
             
