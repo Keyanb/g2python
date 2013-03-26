@@ -359,8 +359,10 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
                 paramBox.addItems(self.AVAILABLE_PARAMS[str(text)])
                     
     def updateData(self, data_set): 
-        stri = str(data_set).strip('[]')           
-        print stri
+        stri = str(data_set).strip('[]\n\r') 
+        stri = stri.replace('\n', '') #numpy arrays conveniently include newlines in their strings, get rid of them.
+
+        print '>>' + stri
         self.out_file.write(stri + '\n')        
         
         if self.data_array.size == 0:

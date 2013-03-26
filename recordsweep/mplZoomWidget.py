@@ -62,10 +62,7 @@ class MatplotlibZoomWidget(MatplotlibWidget):
         self.axes.tick_params(axis='y', labelsize=8)
         self.axesR.tick_params(axis='x', labelsize=8)
         self.axesR.tick_params(axis='y', labelsize=8)
-        
-        self.auto_scale_X_on = True
-        self.auto_scale_L_on = True
-        self.auto_scale_R_on = True
+
         
         self.control_X_on = True
         self.control_L_on = True
