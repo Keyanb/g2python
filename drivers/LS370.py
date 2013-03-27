@@ -9,7 +9,8 @@ class LS370:
         if debug==True:
             self.ls = None
         else:
-            self.ls = visa.instrument(name)  
+            self.ls = visa.instrument(name)
+            print self.ls.ask('*IDN?')
 
     def read_channel (self, chan):
         if self.debug == False:        

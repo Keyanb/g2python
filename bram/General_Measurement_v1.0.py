@@ -18,14 +18,9 @@ from conductance_calculator import *
 from math import *
 from collections import defaultdict
 
-import LS340
-import LS332
 import time, os, errno
 import threading
 import numpy
-import SRS830
-import DAC488
-import keithley2400
 from bramDataTaker import DataTaker
 
 
@@ -36,6 +31,7 @@ from pylab import *
 class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
     def __init__(self, parent=None):
         super(WireSweep, self).__init__()
+        self.setWindowTitle('Measurement')
         self.setupUi(self)
         self.datataker = DataTaker(self)
     
@@ -58,7 +54,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         # Slots
         self.connect(self.datataker, SIGNAL("list(PyQt_PyObject)"), self.listHeaders)
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"), self.updateData)
-        self.connect(self.datataker, SIGNAL("clear(PyQt_PyObject"), self.clearData)
+        self.connect(self.datataker, SIGNAL("clear(PyQt_PyObject)"), self.clearData)
         self.connect(self.xlist1, SIGNAL('activated(QString)'), self.updatePlot)
         self.connect(self.xlist2, SIGNAL('activated(QString)'), self.updatePlot)
         self.connect(self.ylist1, SIGNAL('activated(QString)'), self.updatePlot)
@@ -159,7 +155,6 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         
         
     def updateData(self, data_set):
-        print data_set
         for v in self.headers:
             self.data[v].append(data_set[v])
         self.updatePlot()
@@ -226,12 +221,12 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                     pass
                 else: raise
                 
-        date = time.strftime('%d-%m-%y',time.localtime())
+        date = time.strftime('%y-%m-%d',time.localtime())
         
         if self.computer == '293-PCZ156':
             path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
         else:
-            path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
+            path = 'D:\\MANIP\\DATA\\' + date + '\\'
 
         mkdir_p(path)
         filePath = QFileDialog.getSaveFileName(None,'Choose Data File',path)
@@ -254,7 +249,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                     pass
                 else: raise
                 
-        date = time.strftime('%d-%m-%y',time.localtime())
+        date = time.strftime('%y-%m-%d',time.localtime())
         
         if self.computer == '293-PCZ156':
             path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'

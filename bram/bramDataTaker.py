@@ -10,7 +10,7 @@ import visa
 from conductance_calculator import *
 from math import *
 
-import LS340, LS332, SRS830, DAC488, keithley2400
+import LS340, LS332, LS370, SRS830, DAC488, keithley2400
 import time, os, errno
 import numpy
 
@@ -108,9 +108,9 @@ class DataTaker(QThread):
         self.emit(SIGNAL("data(PyQt_PyObject)"), dataDict)
         
     def wireCond(self):
-        
+        print 'Measuring Wire Conductance'
         self.data_file = open (self.path,'w')
-        self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Temperature (K)', 'Conductance(2e^2/h)']
+        self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Conductance(2e^2/h)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
         stri = self.list2tabdel(self.headers)
@@ -178,12 +178,12 @@ class DataTaker(QThread):
         yValue1 = float(self.lockin1.read_input(2))
         yValue2 = float(self.lockin2.read_input(1))
         
-        temp = float(self.temp.read('C'))
+        #temp = float(self.temp.read(9))
         gateVoltage = ctrlVar
-        conductance = twopointcond(xValue1)
+        conductance = twopointcond(xValue1,50.5)
         
         # Compile values into a list
-        dataPoint = [gateVoltage, xValue1, yValue1, xValue2, yValue2, temp, conductance]
+        dataPoint = [gateVoltage, xValue1, yValue1, xValue2, yValue2, conductance]
         
         # Convert to a string for writing to file
         stri = self.list2tabdel(dataPoint)
@@ -311,7 +311,7 @@ class DataTaker(QThread):
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
-        self.measurement_record = open (self.path='_record.dat','w')
+        self.measurement_record = open (self.path+'_record.dat','w')
                 
         
     def instrumentSelect(self):
@@ -331,7 +331,6 @@ class DataTaker(QThread):
         print "Initializing VTI Instruments..."
         self.lockin1 = SRS830.SRS830('GPIB1::14',debug)
         self.lockin2 = SRS830.SRS830('GPIB1::8',debug)
-        self.gate = keithley2400.device('GPIB1::24',debug)
         self.gate = DAC488.DAC488('GPIB0::10',debug)
         self.gate.set_range(4,1) # up to 10V
         self.gate.set_range(4,2) # up to 10V 
@@ -351,6 +350,12 @@ class DataTaker(QThread):
         '''
         Dilution Fridge Instruments
         '''
+        print "Initializing Dil Instruments..."
+        self.lockin1 = SRS830.SRS830('GPIB0::8',debug)
+        self.lockin2 = SRS830.SRS830('GPIB0::10',debug)
+        self.gate = keithley2400.device('GPIB0::24',debug)
+        #self.temp = LS370.LS370('GPIB0::12',debug)
+        
     def custom_instr(self,debug=False):
         '''
         Custom Instrument Setup
@@ -365,6 +370,7 @@ class DataTaker(QThread):
         self.lockin1 = SRS830.SRS830('GPIB1::14',debug)
         self.lockin2 = SRS830.SRS830('GPIB1::8',debug)
         self.gate = keithley2400.device('GPIB1::24',debug)
+        self.gate.enable_output()
         self.temp = LS332.LS332('GPIB1::12',debug)
         
     def amplitudeDB(self,r):
