@@ -110,18 +110,18 @@ class DataTaker(QThread):
     def wireCond(self):
         print 'Measuring Wire Conductance'
         self.data_file = open (self.path,'w')
-        self.headers = ['Gate(V)', 'x-Value', 'y-Value',  'x-Value-2', 'y-Value-2', 'Conductance(2e^2/h)']
+        self.headers = ['Gate(V)', 'x-Value', 'y-Value', 'r-Value-1', 'Theta-Value-1', 'x-Value-2', 'y-Value-2', 'r-Value-2', 'Theta-Value-2', 'Conductance(2e^2/h)']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
         stri = self.list2tabdel(self.headers)
         self.data_file.write(stri)
         
-        stepTime = 0.5
+        stepTime = .5
         max_gate = -2
-        stepsize = 0.005
-        windowlower = -1.5
-        windowupper = -2.0
-        windowstep = 0.005
+        stepsize = 0.002
+        windowlower = -1.6
+        windowupper = -2.2
+        windowstep = 0.0005
         gateVoltage = 0.0
         
         while gateVoltage > max_gate:
@@ -157,12 +157,12 @@ class DataTaker(QThread):
         if self.stop == True:        
             while gateVoltage < 0:
                 gateVoltage += 0.001
-                self.gate.setvoltage(gateVoltage)
+                self.gate.set_voltage(gateVoltage)
                 # 0.1 delay corresponds to 1:40 per volt (assuming 0.001 step)
-                time.wait(0.2)
+                time.sleep(0.2)
                 
         self.gate.set_voltage(0)
-        
+        print "Measurement Complete"
         self.data_file.close()
         
     def readCondData(self,ctrlVar):
@@ -176,14 +176,18 @@ class DataTaker(QThread):
         xValue1 = float(self.lockin1.read_input(1))
         xValue2 = float(self.lockin2.read_input(1))
         yValue1 = float(self.lockin1.read_input(2))
-        yValue2 = float(self.lockin2.read_input(1))
+        yValue2 = float(self.lockin2.read_input(2))
+        rValue1 = float(self.lockin1.read_input(3))
+        rValue2 = float(self.lockin2.read_input(3))
+        thetaValue1 = float(self.lockin1.read_input(4))
+        thetaValue2 = float(self.lockin2.read_input(4))
         
         #temp = float(self.temp.read(9))
         gateVoltage = ctrlVar
         conductance = twopointcond(xValue1,50.5)
         
         # Compile values into a list
-        dataPoint = [gateVoltage, xValue1, yValue1, xValue2, yValue2, conductance]
+        dataPoint = [gateVoltage, xValue1, yValue1, rValue1, thetaValue1, xValue2, yValue2, rValue2, thetaValue2,conductance]
         
         # Convert to a string for writing to file
         stri = self.list2tabdel(dataPoint)
@@ -391,6 +395,5 @@ class DataTaker(QThread):
             
     def safeStop(self):
         self.stop = True
-
-        print "Measurement Complete!"        
+   
         print "Safely shutting down instruments..."
