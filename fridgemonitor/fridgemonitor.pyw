@@ -10,7 +10,6 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-
 import ui_fridgemonitor
 import LS370
 import HP4263B
@@ -39,19 +38,43 @@ class FridgeMonitorWindow(QMainWindow, ui_fridgemonitor.Ui_FridgeMonitorWindow):
                      self.handleData)
 
         self.ALARM_ON = self.alarmCheckBox.isChecked()
-
+        self.MIN_1K_POT = 1700
+        self.MAX_1K_POT = 2000
+        
         self.debug = config_file_reader.get_debug_setting()
         self.msg = config_file_reader.get_msg_info()
 
         self.htr_val = 0
         self.htr_range = 0
         self.htr_changed = False
-    
-    def handleData(self, data):
+
+        
+        self.channels = {}
+        self.channels[1] = ["1K pot", 1]
+        self.channels[5] = ["Still", 5]
+        self.channels[2] = ["ICP", 2]
+        self.channels[6] = ["MC", 6]
+        self.channels[3] = ["Mats", 3]
+        self.channels[7] = ["RuO 2k", 7]
+        self.channels[4] = ["CMN", 4]
+        self.channels[8] = ["", 8]
+        self.setup_plot()
+        
+    def setup_plot(self):
+        self.mplwidget.figure.clear()
+        
+        for i in range (8):
+            ax = self.mplwidget.figure.add_subplot(4,2,i+1)
+            ax.set_ylabel (self.channels[i+1][0])
+            ax.tick_params(axis='x', labelsize=8)
+            ax.tick_params(axis='y', labelsize=8)  
+        self.mplwidget.figure.subplots_adjust(left = 0.05, right = 0.95, top = 0.95)           
+           
+    def handle_data(self, data):
         print data
         
         
-    def changeAlarm(self):
+    def change_alarm(self):
         self.ALARM_ON = self.alarmCheckBox.isChecked()
         print self.ALARM_ON
     
@@ -95,9 +118,6 @@ class FridgeMonitorWindow(QMainWindow, ui_fridgemonitor.Ui_FridgeMonitorWindow):
                     
     def main_loop(self):
 
-        MIN_1K_POT = 1700
-        MAX_1K_POT = 2000
-       
         
         CMN_cr = cr.cr(8,"CMN", '.-b')
         

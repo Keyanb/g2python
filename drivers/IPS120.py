@@ -15,7 +15,11 @@ class IPS120:
                 self.set_extended()
             
             print (self.read_status())
-
+    def clear_buffer(self):
+        if self.debug == False:
+            self.ips.clear()
+        
+        
     def unlock (self):
         if self.debug == False:
             return self.ips.ask('@0C3\r')
