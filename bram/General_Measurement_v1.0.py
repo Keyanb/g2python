@@ -7,6 +7,9 @@ This program is responsible for the collection of all the data and feeding it
 into the GUI. It runs in a separate thread.
 
 @author: keyan
+To Do:
+    - Multiple Lines
+    - Zoom
 """
 
 from PyQt4.QtCore import *
@@ -40,7 +43,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.fig = self.mplwidget.figure
         self.ax.tick_params(axis='x', labelsize=8)
         self.ax.tick_params(axis='y', labelsize=8)
-        self.line, = self.ax.plot([],[])
+        self.line, = self.ax.plot([],[],'-o', markersize = 2)
         #self.ax.lines = line
         
         # Setting up second plot
@@ -48,13 +51,13 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.fig2 = self.mplwidget_2.figure
         self.ax2.tick_params(axis='x', labelsize=8)
         self.ax2.tick_params(axis='y', labelsize=8)
-        self.line2, = self.ax2.plot([],[])
+        self.line2, = self.ax2.plot([],[],'-o',color = 'red', markersize = 2)
         #self.ax.lines = line
         
         # Slots
         self.connect(self.datataker, SIGNAL("list(PyQt_PyObject)"), self.listHeaders)
         self.connect(self.datataker, SIGNAL("data(PyQt_PyObject)"), self.updateData)
-        self.connect(self.datataker, SIGNAL("clear(PyQt_PyObject)"), self.clearData)
+        self.connect(self.datataker, SIGNAL("clear()"), self.clearData)
         self.connect(self.xlist1, SIGNAL('activated(QString)'), self.updatePlot)
         self.connect(self.xlist2, SIGNAL('activated(QString)'), self.updatePlot)
         self.connect(self.ylist1, SIGNAL('activated(QString)'), self.updatePlot)
@@ -62,11 +65,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.connect(self.rescaleButton, SIGNAL('on_rescaleButton_clicked()'), self.rescale)
         
         
-        # Get the computer name
-        
-        self.computer = os.environ['COMPUTERNAME']
-        print self.computer
-        
+
 #        self.timer = QTimer(self)
 #        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.updatePlotD)
         
@@ -85,8 +84,8 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 i = instr_buttons.index(button)
                 instr = instr_configs[i]
                 
-        meas_buttons = [self.bodeplot,self.quantumwire,self.tempsweep,self.fourquantumwire]
-        meas_configs = ['Bode Plot','Wire Conductance','Temperature Sweep','Four Wire']
+        meas_buttons = [self.bodeplot,self.quantumwire,self.tempsweep,self.custom]
+        meas_configs = ['Bode Plot','Wire Conductance','Temperature Sweep','Custom']
         
         for button in meas_buttons:
             state = button.isChecked()
@@ -203,7 +202,37 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.data = defaultdict(list)
         for v in self.headers:
             self.data[v] = []        
+            
+    def computerDetect(self):
+        '''
+        This function is responsible for setting the various computer specific
+        program parameters.
+        - Choosing the correct path for data to be saved in
+        - Auto select the relevant instrument configuration
+        - 
         
+        The current setup of computer is:
+            - Diltion Fridge: LONGICORNE
+            - VTI Desktop: 293-PCZ156
+            - Laptop: PCZ169
+        '''        
+        # Get the computer name
+        computer = os.environ['COMPUTERNAME']
+        print computer
+
+
+        
+        if computer == 'LONGICORNE':
+            self.dilutionButton.setChecked(True)
+            self.dataPath = 'D:\\MANIP\\DATA\\'
+        elif computer == '293-PCZ156':
+            self.vtiButton.setChecked(True)
+            self.dataPath = 'C:\\Users\\keyan\\Documents\\Data\\'
+        elif computer == 'PCZ156':
+            self.he3Button.setChecked(True)
+            self.dataPath == 'C:\\Users\\bram\\Documents\\Data\\'
+        else:
+            self.dataPath = 'C:\\'
         
     def selectFile(self):
         
@@ -223,10 +252,8 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 
         date = time.strftime('%y-%m-%d',time.localtime())
         
-        if self.computer == '293-PCZ156':
-            path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
-        else:
-            path = 'D:\\MANIP\\DATA\\' + date + '\\'
+        path = self.dataPath + date + '\\'
+
 
         mkdir_p(path)
         filePath = QFileDialog.getSaveFileName(None,'Choose Data File',path)
@@ -251,11 +278,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
                 
         date = time.strftime('%y-%m-%d',time.localtime())
         
-        if self.computer == '293-PCZ156':
-            path = 'C:\\Users\\keyan\\Documents\\Data\\' + date + '\\'
-        else:
-            path = 'C:\\Users\\bram\\Documents\\Data\\' + date + '\\'
-            
+        path = self.dataPath + date + '\\'
             
         mkdir_p(path)
         folderPath = QFileDialog.getExistingDirectory(self,'Choose Data Folder',path)

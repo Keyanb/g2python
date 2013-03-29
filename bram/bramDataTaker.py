@@ -3,6 +3,10 @@
 Created on Sat Mar 16 11:41:32 2013
 
 @author: keyan
+
+To Do:
+    - Capacitor Compensation
+    
 """
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -29,7 +33,7 @@ class DataTaker(QThread):
         measurement = {'Bode Plot': self.bodePlot,
                        'Wire Conductance':self.wireCond,
                        'Temperature Sweep':self.tempSweep,
-                       'Four Wire':self.fourWire}
+                       'Custom':self.scanRegion}
                        
         measurement[self.meas]()
         
@@ -109,20 +113,23 @@ class DataTaker(QThread):
         
     def wireCond(self):
         print 'Measuring Wire Conductance'
-        self.data_file = open (self.path,'w')
-        self.headers = ['Gate(V)', 'x-Value', 'y-Value', 'r-Value-1', 'Theta-Value-1', 'x-Value-2', 'y-Value-2', 'r-Value-2', 'Theta-Value-2', 'Conductance(2e^2/h)']
+        self.data_file = open (self.path+'.dat','w')
+        self.headers = ['Gate(V)', 'x-Value', 'y-Value', 'r-Value-1', 'Theta-1', 'x-Value-2', 'y-Value-2', 'r-Value-2', 'Theta-2', 'Conductance(2e^2/h)', '4pt Conductance(2e^2/h)','Time']
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         
         stri = self.list2tabdel(self.headers)
         self.data_file.write(stri)
+        self.measurementRecord()
         
-        stepTime = .5
-        max_gate = -2
+        stepTime = 1.0
+        max_gate = -1.0
         stepsize = 0.002
-        windowlower = -1.6
-        windowupper = -2.2
-        windowstep = 0.0005
+        windowlower = -0.58
+        windowupper = -0.68
+        windowstep = 0.0001
         gateVoltage = 0.0
+        
+        self.t_start = time.time()
         
         while gateVoltage > max_gate:
             if self.stop == True:
@@ -165,6 +172,79 @@ class DataTaker(QThread):
         print "Measurement Complete"
         self.data_file.close()
         
+    def scanRegion(self):
+        '''
+        This function scans a defined region of the gate while some
+        other value is changed. 
+        '''
+        
+        print 'Scanning Region...'      
+        self.data_file = open (self.path + '-scan.dat','w')
+        self.headers = ['Gate(V)', 'x-Value', 'y-Value', 'r-Value-1', 'Theta-1', 'x-Value-2', 'y-Value-2', 'r-Value-2', 'Theta-2', 'Conductance(2e^2/h)','Time']
+        self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
+        
+        stri = self.list2tabdel(self.headers)
+        self.data_file.write(stri)
+        self.measurementRecord()
+        
+        stepTime = 1
+        stepsize = 0.001
+        windowlower = -0.0
+        windowupper = -1.0
+        gateVoltage = 0.0
+        
+        self.gate.configure_output('VOLT',gateVoltage,0.00005)
+        self.gate.enable_output()
+        
+        self.t_start = time.time()
+        
+#        while gateVoltage > windowlower:
+#            '''
+#            This is the initial ramp up
+#            '''
+#            self.gate.set_voltage(gateVoltage)
+#            time.sleep(stepTime)
+#            self.readCondData(gateVoltage)
+#            gateVoltage = gateVoltage - stepsize
+#        
+#        self.data_file.close()
+#        self.data_file = open (self.path + '-scan.dat','w')
+        
+        while self.stop == False:
+            print 'Beginning Scan...'
+            self.emit(SIGNAL("clear()"))
+            print gateVoltage
+            while gateVoltage > windowupper:
+                self.gate.set_voltage(gateVoltage)
+                time.sleep(stepTime)
+                self.readCondData(gateVoltage)
+                gateVoltage = gateVoltage - stepsize
+                if self.stop == True:
+                    break
+                
+            while gateVoltage < windowlower:
+                self.gate.set_voltage(gateVoltage)
+                time.sleep(stepTime)
+                self.readCondData(gateVoltage)
+                gateVoltage = gateVoltage + stepsize
+                if self.stop == True:
+                    break
+                
+#        self.data_file.close()
+#        self.data_file = open (self.path + '-rampdown.dat','w')            
+#        
+        print 'Ramping Down'
+        
+        while gateVoltage < 0:
+            gateVoltage += 0.001
+            self.gate.set_voltage(gateVoltage)
+            # 0.1 delay corresponds to 1:40 per volt (assuming 0.001 step)
+            time.sleep(0.2)
+            
+        self.gate.set_voltage(0)
+        print "Measurement Complete"
+        self.data_file.close()
+            
     def readCondData(self,ctrlVar):
         '''
         This function reads the data, sends it to the GUI and writes it to the 
@@ -182,12 +262,14 @@ class DataTaker(QThread):
         thetaValue1 = float(self.lockin1.read_input(4))
         thetaValue2 = float(self.lockin2.read_input(4))
         
+        #field = float(self.magnet.read_field())
         #temp = float(self.temp.read(9))
         gateVoltage = ctrlVar
         conductance = twopointcond(xValue1,50.5)
-        
+        fourConductance = fourpointcond(rValue1,rValue2)
+        currTime = time.time()-self.t_start
         # Compile values into a list
-        dataPoint = [gateVoltage, xValue1, yValue1, rValue1, thetaValue1, xValue2, yValue2, rValue2, thetaValue2,conductance]
+        dataPoint = [gateVoltage, xValue1, yValue1, rValue1, thetaValue1, xValue2, yValue2, rValue2, thetaValue2,field,conductance,fourConductance,currTime]
         
         # Convert to a string for writing to file
         stri = self.list2tabdel(dataPoint)
@@ -315,7 +397,13 @@ class DataTaker(QThread):
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
-        self.measurement_record = open (self.path+'_record.dat','w')
+        print 'Saving Measurement Settings...'
+        record = open (self.path+'_record.txt','w')
+        s = 'Starting Time of Measurement \t %f \n' % time.time()
+        record.write(s)
+        s = os.environ['COMPUTERNAME']
+        record.write(s+'\n')
+        record.close()
                 
         
     def instrumentSelect(self):
@@ -358,6 +446,7 @@ class DataTaker(QThread):
         self.lockin1 = SRS830.SRS830('GPIB0::8',debug)
         self.lockin2 = SRS830.SRS830('GPIB0::10',debug)
         self.gate = keithley2400.device('GPIB0::24',debug)
+        self.magnet = IPS120.IPS120('GPIB0::')
         #self.temp = LS370.LS370('GPIB0::12',debug)
         
     def custom_instr(self,debug=False):

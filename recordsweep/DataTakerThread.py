@@ -41,7 +41,8 @@ class DataTakerThread(QThread):
                     if instr_type == 'SRS830':               
                         self.instruments[dev] = SRS830.SRS830(dev, debug=self.DEBUG)
                     elif instr_type == 'IPS120':
-                        self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)    
+                        self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)  
+                        self.instruments[dev].ips.clear()
                     self.instrument_types[dev] = instr_type
                 else:
                     if instr_type != self.instrument_types[dev]:
