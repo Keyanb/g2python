@@ -10,6 +10,7 @@ into the GUI. It runs in a separate thread.
 To Do:
     - Multiple Lines
     - Zoom
+    - Paramater Dialog
 """
 
 from PyQt4.QtCore import *
@@ -64,7 +65,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         self.connect(self.ylist2, SIGNAL('activated(QString)'), self.updatePlot)
         self.connect(self.rescaleButton, SIGNAL('on_rescaleButton_clicked()'), self.rescale)
         
-        
+        self.computerDetect()
 
 #        self.timer = QTimer(self)
 #        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.updatePlotD)
@@ -284,6 +285,11 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
         folderPath = QFileDialog.getExistingDirectory(self,'Choose Data Folder',path)
         
         return folderPath
+    
+    def parameterDialog(self):
+        '''
+        Want to Make a dialog which has the measurement specific paramters
+        '''
         
         
         

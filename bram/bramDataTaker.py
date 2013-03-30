@@ -6,7 +6,7 @@ Created on Sat Mar 16 11:41:32 2013
 
 To Do:
     - Capacitor Compensation
-    
+    - 2D Sweeps
 """
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -14,7 +14,7 @@ import visa
 from conductance_calculator import *
 from math import *
 
-import LS340, LS332, LS370, SRS830, DAC488, keithley2400
+import LS340, LS332, LS370, SRS830, DAC488, keithley2400, RF_source
 import time, os, errno
 import numpy
 
@@ -33,7 +33,7 @@ class DataTaker(QThread):
         measurement = {'Bode Plot': self.bodePlot,
                        'Wire Conductance':self.wireCond,
                        'Temperature Sweep':self.tempSweep,
-                       'Custom':self.scanRegion}
+                       'Custom':self.NMR}
                        
         measurement[self.meas]()
         
@@ -119,18 +119,18 @@ class DataTaker(QThread):
         
         stri = self.list2tabdel(self.headers)
         self.data_file.write(stri)
-        self.measurementRecord()
+        #self.measurementRecord()
         
         stepTime = 1.0
         max_gate = -1.0
         stepsize = 0.002
         windowlower = -0.58
         windowupper = -0.68
-        windowstep = 0.0001
+        windowstep = 0.002
         gateVoltage = 0.0
         
         self.t_start = time.time()
-        
+
         while gateVoltage > max_gate:
             if self.stop == True:
                 break
@@ -261,20 +261,19 @@ class DataTaker(QThread):
         rValue2 = float(self.lockin2.read_input(3))
         thetaValue1 = float(self.lockin1.read_input(4))
         thetaValue2 = float(self.lockin2.read_input(4))
-        
+
         #field = float(self.magnet.read_field())
         #temp = float(self.temp.read(9))
-        gateVoltage = ctrlVar
-        conductance = twopointcond(xValue1,50.5)
+        conductance = twopointcond(rValue1,50.5)
         fourConductance = fourpointcond(rValue1,rValue2)
         currTime = time.time()-self.t_start
+
         # Compile values into a list
-        dataPoint = [gateVoltage, xValue1, yValue1, rValue1, thetaValue1, xValue2, yValue2, rValue2, thetaValue2,field,conductance,fourConductance,currTime]
+        dataPoint = [ctrlVar, xValue1, yValue1, rValue1, thetaValue1, xValue2, yValue2, rValue2, thetaValue2,conductance,fourConductance,currTime]
         
         # Convert to a string for writing to file
         stri = self.list2tabdel(dataPoint)
         self.data_file.write(stri)
-        
         # Create a dictionary for the data point and send signal to GUI    
         dataDict = dict(zip(self.headers,dataPoint))
         self.emit(SIGNAL("data(PyQt_PyObject)"), dataDict)
@@ -341,7 +340,7 @@ class DataTaker(QThread):
             self.gate.set_voltage(0,DACoput)
             
             self.data_file.close()
-            self.emit(SIGNAL("clear(PyQt_PyObject)"))
+            self.emit(SIGNAL("clear()"))
             print 'Finished ' + wire
         
         
@@ -358,7 +357,6 @@ class DataTaker(QThread):
         self.data_file.write(stri)
         
         self.t_start = time.time()
-        timestep = 1 #(s)
         temperatures = [self.temp.read('a'),self.temp.read('b')]
         
         while temperatures[1]>1.8:
@@ -391,18 +389,87 @@ class DataTaker(QThread):
         # return temperatures since they are the control variables
         return [temperatureA,temperatureB]
         
-    def measurementRecord(self):
+    def NMR(self):
+        '''
+        Performs NMR Measurement. Sweeps frequency and reads
+        '''
+        
+        print 'Beginning NMR Measurement'
+
+        
+        self.headers = ['Frequency(hz)', 'x-Value', 'y-Value', 'r-Value-1', 'Theta-1', 'x-Value-2', 'y-Value-2', 'r-Value-2', 'Theta-2', 'Conductance(2e^2/h)', '4pt Conductance(2e^2/h)','Time']
+        self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
+        #self.measurementRecord()
+        
+        stepTime = 10.0
+        max_freq = 42300000     #42300000
+        min_freq = 42000000      #42000000
+        stepsize = 1000
+        freq = 42000000
+        
+        # Set the power values we will try
+        power = [-20.0,-19.0,-18.0,-17.0,-16.0,-15.0,-14.0,-13.0,-12.0,-11.0,-10.0]
+        
+        self.t_start = time.time()
+        
+        for powa in power: # Loop for power
+            if self.stop == True:
+                break
+            
+            self.RF.set_power(powa) # Set the Power
+            self.data_file = open (self.path+str(powa)+'.dat','w') # Create a new Data File for Power
+            stri = self.list2tabdel(self.headers) # Write the headers tot eh data file
+            self.data_file.write(stri)
+            self.emit(SIGNAL("clear()")) # clear the graph
+            self.RF.set_freq(min_freq) # set the frequency to the min
+            freq = min_freq 
+            time.sleep(10)
+            
+            while freq < max_freq: # Frequency Scan
+                if self.stop == True: 
+                        break
+                self.readCondData(freq) # Read the Conductance
+                freq += stepsize 
+                self.RF.set_freq(freq)
+                time.sleep(stepTime)
+            print ('Scan Finished')
+            
+        print 'Measurement Finished'
+        
+        
+    def setGate(self, gateVoltage = 0.0, target = -1.0):
+        
+        step = (target - gateVoltage)/1000
+        stepTime = 0.3
+        
+        self.measurementRecord('Ramping Gate to &f \n' % target)
+        
+        while abs(gateVoltage) < abs(target):
+            print 'Gate Voltage:    %f' % gateVoltage
+            if self.stop == True:
+                    break
+                
+            self.gate.set_voltage(gateVoltage)
+            gateVoltage += step
+            time.sleep(stepTime)
+
+        print 'Ramp Complete!'
+        print 'Gate Voltage %f' % gateVoltage
+        
+    def measurementRecord(self,description = 'No Comment'):
         '''
         This function is intended to save all the parameters and notes
         associated with the measurement. Values such as the lockin settings,
         time, date and equipment.
         '''
         print 'Saving Measurement Settings...'
-        record = open (self.path+'_record.txt','w')
+        record = open (self.path+'-record.txt','w')
+        record.write(description + '\n')
         s = 'Starting Time of Measurement \t %f \n' % time.time()
         record.write(s)
         s = os.environ['COMPUTERNAME']
         record.write(s+'\n')
+        
         record.close()
                 
         
@@ -446,8 +513,9 @@ class DataTaker(QThread):
         self.lockin1 = SRS830.SRS830('GPIB0::8',debug)
         self.lockin2 = SRS830.SRS830('GPIB0::10',debug)
         self.gate = keithley2400.device('GPIB0::24',debug)
-        self.magnet = IPS120.IPS120('GPIB0::')
+        #self.magnet = IPS120.IPS120('GPIB0::')
         #self.temp = LS370.LS370('GPIB0::12',debug)
+        self.RF = RF_source.RF_source('GPIB0::19',debug)
         
     def custom_instr(self,debug=False):
         '''
