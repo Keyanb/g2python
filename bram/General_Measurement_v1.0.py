@@ -154,11 +154,7 @@ class WireSweep(QMainWindow, bramplot.Ui_MainWindow):
             self.data[v] = []
         
         
-    def updateData(self, data_set):
-        for v in self.headers:
-            self.data[v].append(data_set[v])
-        self.updatePlot()
-            
+    def updateData(self, data_set):            
     def updatePlot(self):
         '''
         Updates the plots using the dict data methods. More advanced than the
