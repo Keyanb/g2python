@@ -264,8 +264,10 @@ class DataTaker(QThread):
 
         #field = float(self.magnet.read_field())
         #temp = float(self.temp.read(9))
-        conductance = twopointcond(rValue1,50.5)
-        fourConductance = fourpointcond(rValue1,rValue2)
+#        conductance = microtwopoint(rValue1)
+#        fourConductance = microfourpoint(rValue2)
+        conductance = twopoint(rValue1)
+        fourConductance = fourpoint(rValue1,rValue2)
         currTime = time.time()-self.t_start
 
         # Compile values into a list
@@ -401,23 +403,23 @@ class DataTaker(QThread):
         self.emit(SIGNAL("list(PyQt_PyObject)"), self.headers)
         #self.measurementRecord()
         
-        stepTime = 10.0
-        max_freq = 42300000     #42300000
-        min_freq = 42000000      #42000000
-        stepsize = 1000
-        freq = 42000000
-        
+        stepTime = 5.0
+        max_freq = 42150000     #42300000
+        min_freq = 41950000      #42000000
+        stepsize = 500
+        freq = 41950000
+        self.RF.set_power(-18.0)
         # Set the power values we will try
-        power = [-20.0,-19.0,-18.0,-17.0,-16.0,-15.0,-14.0,-13.0,-12.0,-11.0,-10.0]
+        gate = [-0.44,-0.43,-0.42,-0.41,-0.4,-0.39,-0.38,-0.37,-0.36,-0.35]
         
         self.t_start = time.time()
-        
-        for powa in power: # Loop for power
+        currentGate = -0.7
+        for volts in gate: # Loop for power
             if self.stop == True:
                 break
-            
-            self.RF.set_power(powa) # Set the Power
-            self.data_file = open (self.path+str(powa)+'.dat','w') # Create a new Data File for Power
+            self.setGate(currentGate,volts)
+            #self.RF.set_power(powa) # Set the Power
+            self.data_file = open (self.path+str(volts)+'.dat','w') # Create a new Data File for Power
             stri = self.list2tabdel(self.headers) # Write the headers tot eh data file
             self.data_file.write(stri)
             self.emit(SIGNAL("clear()")) # clear the graph
@@ -433,18 +435,20 @@ class DataTaker(QThread):
                 self.RF.set_freq(freq)
                 time.sleep(stepTime)
             print ('Scan Finished')
+            currentGate = volts
             
         print 'Measurement Finished'
         
         
     def setGate(self, gateVoltage = 0.0, target = -1.0):
         
-        step = (target - gateVoltage)/1000
+        step = copysign(0.0001,target - gateVoltage)
+        print step
         stepTime = 0.3
         
-        self.measurementRecord('Ramping Gate to &f \n' % target)
+        #self.measurementRecord('Ramping Gate to &f \n' % target)
         
-        while abs(gateVoltage) < abs(target):
+        while abs(target-gateVoltage) >= 0.0001:
             print 'Gate Voltage:    %f' % gateVoltage
             if self.stop == True:
                     break
