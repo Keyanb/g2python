@@ -33,7 +33,7 @@ class DataTaker(QThread):
         measurement = {'Bode Plot': self.bodePlot,
                        'Wire Conductance':self.wireCond,
                        'Temperature Sweep':self.tempSweep,
-                       'Custom':self.NMR}
+                       'Custom':self.scanRegion}
                        
         measurement[self.meas]()
         
@@ -410,10 +410,10 @@ class DataTaker(QThread):
         freq = 41950000
         self.RF.set_power(-18.0)
         # Set the power values we will try
-        gate = [-0.44,-0.43,-0.42,-0.41,-0.4,-0.39,-0.38,-0.37,-0.36,-0.35]
+        gate = [-0.3,-0.2,-0.1,-0.0]
         
         self.t_start = time.time()
-        currentGate = -0.7
+        currentGate = -0.35
         for volts in gate: # Loop for power
             if self.stop == True:
                 break
@@ -519,7 +519,7 @@ class DataTaker(QThread):
         self.gate = keithley2400.device('GPIB0::24',debug)
         #self.magnet = IPS120.IPS120('GPIB0::')
         #self.temp = LS370.LS370('GPIB0::12',debug)
-        self.RF = RF_source.RF_source('GPIB0::19',debug)
+        #self.RF = RF_source.RF_source('GPIB0::19',debug)
         
     def custom_instr(self,debug=False):
         '''

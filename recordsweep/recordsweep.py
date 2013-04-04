@@ -271,7 +271,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         #svg.render(p, QRectF(margin_top,margin_left, 8*dpi, 5*dpi))
 
         p.drawImage(QRectF(margin_top,margin_left, 8*dpi, 5*dpi), QImage("temp.png", format='png'))
-        p.drawText (margin_left, 700, "Data recorded to: " + self.out_file.name)
+        p.drawText (margin_left, 600, "Data recorded to: " + self.out_file.name)
         print "about to send to printer"        
         p.end()           
            
