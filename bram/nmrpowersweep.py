@@ -12,18 +12,32 @@ import numpy as np
 from collections import defaultdict
 plt.hold(True)
 
+#files = [
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-20.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-19.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-18.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-17.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-16.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-15.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-14.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-13.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-12.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-11.0.dat',
+#'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-10.0.dat',
+#]
+
 files = [
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-20.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-19.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-18.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-17.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-16.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-15.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-14.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-13.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-12.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-11.0.dat',
-'\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-29\\VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-10.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-20.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-19.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-18.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-17.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-16.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-15.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-14.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-13.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-12.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-11.0.dat',
+'/home/bram/Documents/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-NMR.dat-10.0.dat-10.0.dat',
 ]
 
 dB = ['-20.0dB','-19.0dB','-18.0dB','-17.0dB','-16.0dB','-15.0dB','-14.0dB','-13.0dB','-12.0dB','-11.0dB','-10.0dB']
@@ -48,17 +62,17 @@ for freq,cond in zip(x,y):
     ax.plot(freq,cond)
 plt.title('NMR Power Sweep')
 box = ax.get_position()
-ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-plt.legend(dB,bbox_to_anchor=(1.35, 1.0))
+ax.set_position([box.x0, box.y0, box.width * 0.9, box.height])
+plt.legend(dB,bbox_to_anchor=(1.15, 1.0))
 plt.xlabel(header[0])
 plt.ylabel(header[10])
 
-ax.annotate("Possible Feature?",
-            xy=(42080000, 1.27), xycoords='data',
-            xytext=(42150000, 1.2), textcoords='data',
-            arrowprops=dict(arrowstyle="fancy",
-                            connectionstyle="arc3,rad=-0.3"),
-            )
+#ax.annotate("Possible Feature?",
+#            xy=(42080000, 1.27), xycoords='data',
+#            xytext=(42150000, 1.2), textcoords='data',
+#            arrowprops=dict(arrowstyle="fancy",
+#                            connectionstyle="arc3,rad=-0.3"),
+#            )
             
 
 plt.show()
