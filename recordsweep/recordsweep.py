@@ -34,7 +34,7 @@ except AttributeError:
     _fromUtf8 = lambda s: s
 
 class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
-    MAX_CHANNELS = 6
+    MAX_CHANNELS = 10
     INSTRUMENT_TYPES = ['TIME', 'IPS120', 'SRS830']   
     
     AVAILABLE_PARAMS = {}
@@ -67,7 +67,7 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
          # objects to hold line data
         line_set_L = []
         line_set_R = []
-        fmt_str = ['b','g','r','k','c','m']
+        fmt_str = ['b','g','r','k','c','m','b', 'g', 'r','k']
         
         for i in range (self.MAX_CHANNELS):            
             line1, = self.ax.plot([], [], fmt_str[i])     
