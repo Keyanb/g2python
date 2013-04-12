@@ -14,19 +14,20 @@ import time
 
 
 class FridgeMonThread(QThread):    
-    def __init__(self, lock, parent=None):
+    def __init__(self, mutex, parent=None):
         super(FridgeMonThread, self).__init__(parent)
-        self.lock = lock
+        self.mutex = mutex
+        
         self.stopped = True
         self.completed = False
 
-    def initialize(self, debug):
-        self.debug = debug
-        self.active_channels = [1,2,3,4,5,9]
+    def initialize(self, lakeshore, CMN, pirani, debug):
+        self.lakeshore = lakeshore
+        self.CMN = CMN
+        self.pirani = pirani
         
-        self.lakeshore = LS370.LS370('GPIB::12', self.debug)
-        self.CMN = HP4263B.HP4263B('GPIB::17', self.debug)
-        self.pirani = MKS.MKS_gauge('COM3', self.debug) #'/dev/ttyUSB0'
+        self.debug = debug        
+        self.active_channels = [1,2,3,4,5,9]    
         
         self.TIME_STEP = 10
 
@@ -48,17 +49,20 @@ class FridgeMonThread(QThread):
             self.CMN.trigger()
             
             for chan in self.active_channels:
-                self.lakeshore.scanner_to_channel(chan)
+                
+                with QMutexLocker(self.mutex):
+                    self.lakeshore.scanner_to_channel(chan)
+                    
                 time.sleep(self.TIME_STEP)
                 dat = self.lakeshore.read_channel(chan)
                 
-                self.emit(SIGNAL("data(PyQt_PyObject)"), ['LS370', chan, dat])                 
+                self.emit(SIGNAL("data(PyQt_PyObject)"), ['LS_%d'%chan, dat])                 
                 
                 while self.isStopped() == True:
                     break
             
             CMN_temp = self.CMN.read_data()
-            self.emit(SIGNAL("data(PyQt_PyObject)"), ['CMN', 0, dat])
+            self.emit(SIGNAL("data(PyQt_PyObject)"), ['CMN', dat])
 
 
     def clean_up(self):
