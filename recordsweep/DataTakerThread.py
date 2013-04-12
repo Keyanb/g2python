@@ -7,7 +7,7 @@ Created on Tue Feb 19 21:52:15 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import SRS830, IPS120, LS370, HP4263B, MKS
+import SRS830, IPS120, LS370, HP4263B, MKS, HP34401A
 import readconfigfile
 import time
 import numpy as np
@@ -40,6 +40,8 @@ class DataTakerThread(QThread):
                 if not dev in self.instruments:
                     if instr_type == 'SRS830':               
                         self.instruments[dev] = SRS830.SRS830(dev, debug=self.DEBUG)
+                    elif instr_type == 'HP34401A':               
+                        self.instruments[dev] = HP34401A.HP34401A(dev, debug=self.DEBUG)                        
                     elif instr_type == 'IPS120':
                         self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)  
                         self.instruments[dev].ips.clear()
@@ -48,8 +50,7 @@ class DataTakerThread(QThread):
                     if instr_type != self.instrument_types[dev]:
                         print ("Same GPIB port specified for different instruments! ")
                         print (dev + " " + instr_type + " " + self.instrument_types[dev])
-                        instr_type = 'NONE'
-                        
+                        instr_type = 'NONE'                        
     
                 if instr_type == 'TIME':
                     command = lambda: time.time() - self.t_start
@@ -65,7 +66,16 @@ class DataTakerThread(QThread):
                         command = lambda d=dev: self.instruments[d].read_input(3)    
                     elif param =='PHASE':
                         command = lambda d=dev: self.instruments[d].read_input(4)    
-                     
+                elif instr_type == 'HP34401A':
+                    if param =='V_DC':
+                        command = lambda d=dev: self.instruments[d].read_voltage_DC()
+                    elif param =='V_AC':
+                        command = lambda d=dev: self.instruments[d].read_voltage_AC()
+                elif instr_type == 'None':
+                    command = lambda: 0
+            else:
+                command = lambda: 0
+                    
             self.data_channels.append(command)
 
         

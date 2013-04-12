@@ -29,6 +29,8 @@ class SIAxesLabel():
         else:
             return 0
             
+            
+    # buggy, don't call this!!!!        
     def adjust_units(self):
         chk = self.check_scale(self.axes)
         if chk !=0:
@@ -47,7 +49,7 @@ class SIAxesLabel():
 
 
 class MatplotlibZoomWidget(MatplotlibWidget):
-    SI_prefixes = {-15: 'a', -12: 'p', -9: 'n', -6: 'u', -3: 'm', 0: '', 3: 'k', 6:'M', 9:'G'} 
+    #SI_prefixes = {-15: 'a', -12: 'p', -9: 'n', -6: 'u', -3: 'm', 0: '', 3: 'k', 6:'M', 9:'G'} 
     
     def __init__(self, parent=None, title='', xlabel='', ylabel='',
                  xlim=None, ylim=None, xscale='linear', yscale='linear',
@@ -55,8 +57,8 @@ class MatplotlibZoomWidget(MatplotlibWidget):
         super(MatplotlibZoomWidget, self).__init__(parent, title, xlabel, ylabel,
          xlim, ylim, xscale, yscale, width, height, dpi, hold)
         self.axesR = self.axes.twinx()
-        self.left_pow = 0
-        self.right_pow = 0
+        #self.left_pow = 0
+        #self.right_pow = 0
 
         self.axes.tick_params(axis='x', labelsize=8)
         self.axes.tick_params(axis='y', labelsize=8)
@@ -87,7 +89,8 @@ class MatplotlibZoomWidget(MatplotlibWidget):
             return -3
         else:
             return 0
-            
+    
+    # buggy! don't call this!        
     def adjust_units(self):
         chk = self.check_scale(self.axes)
         if chk !=0:
@@ -97,7 +100,7 @@ class MatplotlibZoomWidget(MatplotlibWidget):
             self.adjust_units()
             
     def rescale_and_draw(self):
-        self.adjust_units()
+        #self.adjust_units()
 
         self.axes.relim()
         self.axes.autoscale_view()       

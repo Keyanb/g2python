@@ -1,0 +1,2 @@
+TIME, TIME, , , True, False
+VOLTAGE, HP34401A, GPIB0::2, V_DC, False, True
