@@ -16,7 +16,7 @@ debug_mode = False
 using_magnet=True
 
 
-SAMPLE_CURRENT = 0.1
+SAMPLE_CURRENT = 1.0
 COIL_VOLTAGE = 1.0
 
 
@@ -25,17 +25,18 @@ I_MEAS = 1e-3
 
 NUM_SAMPLES = 3
 NUM_DC_POINTS = 10
-NUM_POINTS = 10
+NUM_POINTS = 20
 MEAS_TIME = 10
 REST_TIME = 30
-OFFSETS = [-0.005, 0.005]
+OFFSETS = [-0.003, 0.003]
 PHASES = [0, 180]
-FIELD_SET = arange(5.18, 5.03, -0.005)
+#FIELD_SET = arange(5.04, 5.19, 0.0025)
+FIELD_SET = 5.19 * ones (100)
 
 FIELD_SWEEP_RATE = 0.010
-GPIB_2_CONNECTED = True
-GPIB_3_CONNECTED = True
-F1 = 95
+GPIB_2_CONNECTED = False
+GPIB_3_CONNECTED = False
+F1 = 85
 F3 = 200
 
 
@@ -81,7 +82,7 @@ out_file.write('#NUM_POINTS = ' + str(NUM_POINTS) + '\n')
 out_file.write('#NUM_SAMPLES = ' + str(NUM_SAMPLES) + '\n')
 out_file.write('#NUM_DC_POINTS = ' + str(NUM_DC_POINTS) + '\n')
 out_file.write('#I_MEAS = ' + str(I_MEAS) + '\n')
-out_file.write('#Delta_R_scale = 1.0\n')
+out_file.write('#Delta_R_scale = 10e-6\n')
 out_file.write('#GAIN = ' + str(GAIN) + '\n')
 out_file.write('#CAL = 1.0\n')
 out_file.write('#CAL_ERR = 0.0\n')
@@ -108,7 +109,7 @@ def set_frequencies (f_1, f_3, phase):
         
     f_src.set_freq_raw(0, f_raw_1)
     f_src.set_freq_raw(1, f_raw_2)        
-    f_src.set_freq_raw(2, f_raw_3)
+    f_src.set_freq_raw(2, f_raw_1)
     f_src.set_freq_raw(3, f_raw_3)
     
     f_src.set_phase(3, phase)
@@ -119,7 +120,8 @@ def set_frequencies (f_1, f_3, phase):
 def set_amplitudes (coil_drive, coil_offset):
     f_src.set_amp(0, 5)
     f_src.set_amp(1, 1)        
-    f_src.set_amp(2, 1)
+    f_src.set_amp(2, 1.35)
+    f_src.set_phase(2, 358.12)
     f_src.set_amp(3, coil_drive)
     f_src.set_DC(3, coil_offset)
 
@@ -176,7 +178,7 @@ def main_loop_core(field, f_1, f_2, f_3, coil_voltage, sample_current):
 
         for phase in PHASES:
             f_src.set_phase(3, phase)
-            f_src.sync()
+            #f_src.sync()
             time.sleep(MEAS_TIME)
             for point in range(NUM_POINTS):
                 time.sleep(MEAS_TIME)
