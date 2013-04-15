@@ -35,15 +35,16 @@ except AttributeError:
 
 class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     MAX_CHANNELS = 10
-    INSTRUMENT_TYPES = ['TIME', 'IPS120', 'SRS830']   
+    INSTRUMENT_TYPES = ['TIME', 'IPS120', 'SRS830', 'HP34401A']   
     
     AVAILABLE_PARAMS = {}
     AVAILABLE_PARAMS['TIME'] = []
     AVAILABLE_PARAMS[''] = []
     AVAILABLE_PARAMS['IPS120'] = ['FIELD']
-    AVAILABLE_PARAMS['SRS830'] = ['X', 'Y', 'R', 'Phase', 'AUX_1', 'AUX_2', 'AUX_3', 'AUX_4']    
+    AVAILABLE_PARAMS['SRS830'] = ['X', 'Y', 'R', 'Phase', 'AUX_1', 'AUX_2', 'AUX_3', 'AUX_4']   
+    AVAILABLE_PARAMS['HP34401A'] = ['V_DC', 'V_AC']
     
-    UNITS = {'FIELD': 'T', 'X': 'V', 'Y': 'V', 'R': 'V', 'PHASE': 'degrees'}    
+    UNITS = {'FIELD': 'T', 'X': 'V', 'Y': 'V', 'R': 'V', 'PHASE': 'degrees', 'V_DC':'V', 'V_AC':'V'}    
     
     def __init__(self, parent=None):
         super(RecordSweepWindow, self).__init__()
@@ -279,6 +280,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
         settings_file = open(fname)
         
         idx = 0
+        for li in self.lineEdit_Name:
+            li.setText('')
+            
         for line in settings_file:
             settings = line.split(',')
             self.lineEdit_Name[idx].setText (settings[0])
@@ -379,12 +383,12 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
 
         for chan_Y, [line_L, line_R] in enumerate(zip (self.ax.lines, self.axR.lines)):
             if self.checkBox_Y[chan_Y].isChecked() and self.data_array.size > 0:
-                line_L.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y] / 10**self.mplwidget.left_pow)
+                line_L.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])# / 10**self.mplwidget.left_pow)
             else:
                 line_L.set_data([],[])
                 
             if self.checkBox_YR[chan_Y].isChecked() and self.data_array.size > 0:
-                line_R.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y] / 10**self.mplwidget.right_pow)
+                line_R.set_data(self.data_array[first:,self.chan_X], self.data_array[first:, chan_Y])# / 10**self.mplwidget.right_pow)
             else:
                 line_R.set_data([],[])
                 
@@ -404,10 +408,35 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             self.out_file.write('Starting time: ' + str(self.t_start) + '\n')
         
             name_list = []
-            for lineEdit in self.lineEdit_Name:
-                lineEdit.setReadOnly(True)
-                name_list.append(str(lineEdit.text()))
+            type_list = []
+            dev_list = []
+            param_list = []
             
+            for lineEdit, cb_Type, cb_Instr, cb_Param  in zip(
+                    self.lineEdit_Name, self.comboBox_Type, self.comboBox_Instr, self.comboBox_Param):
+                        
+                lineEdit.setReadOnly(True)
+                name = str(lineEdit.text())
+                if not name.isspace():                    
+                    name_list.append(name)
+                    type_list.append(str(cb_Type.currentText()))
+                    dev_list.append(str(cb_Instr.currentText()))
+                    param_list.append(str(cb_Param.currentText()))
+                else:
+                    name_list.append("None")
+                    type_list.append("None")
+                    dev_list.append("None")
+                    param_list.append("None")                    
+           
+           # idx = size(name_list) - 1
+        #    while name_list[idx] == 'None':
+         #       name_list.pop()
+         #       type_list.pop()
+         #       dev_list.pop()
+         #       param_list.pop()
+         #       idx -=1
+           
+           
             for name, line in zip (name_list, self.ax.lines):
                 line.set_label(name)
             
@@ -415,9 +444,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
             print stri
             self.out_file.write(stri + '\n')  
             
-            type_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Type]
-            dev_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Instr] 
-            param_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Param]
+            #type_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Type]
+            #dev_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Instr] 
+            #param_list = [str(comboBox.currentText()) for comboBox in self.comboBox_Param]
 
             self.tabWidget.setCurrentIndex(1)
             
