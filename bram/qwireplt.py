@@ -12,7 +12,8 @@ import numpy as np
 import time
 from scipy.signal import lfilter, lfilter_zi, filtfilt, butter
 
-(x,y) = readConductanceData('/home/bram/Ubuntu One/Thesis/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-3.dat')
+#(x,y) = readConductanceData('/home/bram/Ubuntu One/Thesis/Data/13-03-29/VA150InSn1-III-ContactaX-WT-23mK-3.dat')
+(x,y) = readConductanceData('D:\\MANIP\\DATA\\13-04-15\\VA150InSn1-Wire V-23mK-2.dat')
 ny = np.array(y)
 ny = ny - 0.1
 plt.plot(x,ny,'-ro',markersize=3.0)

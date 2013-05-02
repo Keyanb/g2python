@@ -65,7 +65,16 @@ class DataTakerThread(QThread):
                     elif param =='R':
                         command = lambda d=dev: self.instruments[d].read_input(3)    
                     elif param =='PHASE':
-                        command = lambda d=dev: self.instruments[d].read_input(4)    
+                        command = lambda d=dev: self.instruments[d].read_input(4)
+                    elif param =='AUX_1':
+                        command = lambda d=dev: self.instruments[d].read_aux(1)
+                    elif param =='AUX_2':
+                        command = lambda d=dev: self.instruments[d].read_aux(2)
+                    elif param =='AUX_3':
+                        command = lambda d=dev: self.instruments[d].read_aux(3)
+                    elif param =='AUX_4':
+                        command = lambda d=dev: self.instruments[d].read_aux(4)
+                        
                 elif instr_type == 'HP34401A':
                     if param =='V_DC':
                         command = lambda d=dev: self.instruments[d].read_voltage_DC()

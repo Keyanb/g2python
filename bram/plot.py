@@ -10,28 +10,22 @@ import csv
 import numpy as np
 from scipy.signal import lfilter, lfilter_zi, filtfilt, butter
 
-data = '\\\\leod.physics.mcgill.ca\\Gervais\\data\\data dilution fridge\\Qwire\\data\\13-03-30\\VA150InSn1-III-Contacts-aX-WT-23mK-5.8T.dat'
+#filename = 'C:\\Users\\Shared\\Data\\2013\\Sweep\\sweep_13B2_0426.001'
+filename = 'D:\\MANIP\\DATA\\13-04-26\\VA150InSn1-Wire III-CurrentXT-VoltageWa.dat'
 
-freq = []
-cond =[]
-
-reader = csv.reader(open(data),delimiter = '\t',)
-header = reader.next()
-for row in reader:   
-    try:
-        cond.append(float(row[10]))
-        freq.append(float(row[0]))
-    except:
-        print 'Bad Row'
+data = np.loadtxt(filename,skiprows=1)
         
 
 plt.hold(True)
 plt.figure(1)
+plt.grid()
 
-plt.plot(freq,cond)
+#comp = np.abs(data[:,4] + 1j * data[:,5])
 
-plt.title('Gate at 5.8T')
-plt.xlabel('Frequency (hz)')
-plt.ylabel('Conductance (2e^2/h)')
+plt.plot(data[:,0],data[:,10],'-o',markersize=3)
+
+plt.title('Hall Effect')
+plt.xlabel('Field(T)')
+plt.ylabel('Voltage(V)')
 
 plt.show()

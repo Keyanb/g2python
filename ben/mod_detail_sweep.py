@@ -16,27 +16,27 @@ debug_mode = False
 using_magnet=True
 
 
-SAMPLE_CURRENT = 1.0
+SAMPLE_CURRENT = 2.0
 COIL_VOLTAGE = 1.0
 
 
-GAIN = 1
-I_MEAS = 1e-3
+GAIN = 1300
+I_MEAS = 2e-3#10e-9
 
 NUM_SAMPLES = 3
 NUM_DC_POINTS = 10
 NUM_POINTS = 20
 MEAS_TIME = 10
 REST_TIME = 30
-OFFSETS = [-0.003, 0.003]
+OFFSETS = [-0.002, 0.002]
 PHASES = [0, 180]
-#FIELD_SET = arange(5.04, 5.19, 0.0025)
-FIELD_SET = 5.19 * ones (100)
+FIELD_SET = 0.005 * ones(100)#arange(5.17, 5.00, -0.003)
+#FIELD_SET = 5.19 * ones (100)
 
-FIELD_SWEEP_RATE = 0.010
+FIELD_SWEEP_RATE = 0.005
 GPIB_2_CONNECTED = False
 GPIB_3_CONNECTED = False
-F1 = 85
+F1 = 32.5
 F3 = 200
 
 
@@ -102,26 +102,27 @@ def set_frequencies (f_1, f_3, phase):
     f_raw_1 = int(67.10887 * f_1)
     f_raw_3 = int(67.10887 * f_3)
         
-    if f_1 < f_3:        
-        f_raw_2 = f_raw_3 - f_raw_1
-    else:
-        f_raw_2 = f_raw_3 + f_raw_1
+    #if f_1 < f_3:        
+    #    f_raw_2 = f_raw_3 - f_raw_1
+    #else:
+    f_raw_plus = f_raw_3 + f_raw_1
+    f_raw_minus = f_raw_3 - f_raw_1
         
     f_src.set_freq_raw(0, f_raw_1)
-    f_src.set_freq_raw(1, f_raw_2)        
-    f_src.set_freq_raw(2, f_raw_1)
+    f_src.set_freq_raw(1, f_raw_plus)        
+    f_src.set_freq_raw(2, f_raw_minus)
     f_src.set_freq_raw(3, f_raw_3)
     
     f_src.set_phase(3, phase)
     f_src.sync()
-    return [f_1, f_raw_2/67.10887, f_3] 
+    return [f_1, f_raw_plus/67.10887, f_3] 
 
 
 def set_amplitudes (coil_drive, coil_offset):
     f_src.set_amp(0, 5)
     f_src.set_amp(1, 1)        
-    f_src.set_amp(2, 1.35)
-    f_src.set_phase(2, 358.12)
+    f_src.set_amp(2, 1.0)
+    f_src.set_phase(2, 0)
     f_src.set_amp(3, coil_drive)
     f_src.set_DC(3, coil_offset)
 
@@ -237,7 +238,7 @@ def main_loop():
         #using_magnet = False means it's a frequency sweep
         #for coil_voltage in COIL_VOLTAGE_SET:
         #for F3 in FREQ3_SET:
-        for i in range (100):
+        for i in range (1000):
             #F1 = F3/2.0 - 2.5
             print "setting Amplitudes \n"
             set_amplitudes(COIL_VOLTAGE, 0)
