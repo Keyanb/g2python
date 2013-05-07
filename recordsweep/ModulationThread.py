@@ -7,7 +7,7 @@ Created on Tue Feb 19 21:52:15 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import SRS830, IPS120, LS370, HP4263B, HP34401A, LS340
+import SRS830, IPS120, LS370, HP4263B, MKS, HP34401A
 import readconfigfile
 import time
 import numpy as np
@@ -45,8 +45,6 @@ class DataTakerThread(QThread):
                     elif instr_type == 'IPS120':
                         self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)  
                         self.instruments[dev].ips.clear()
-                    elif instr_type == 'LS340':               
-                        self.instruments[dev] = LS340.LS340(dev, debug=self.DEBUG) 
                     self.instrument_types[dev] = instr_type
                 else:
                     if instr_type != self.instrument_types[dev]:
@@ -82,15 +80,6 @@ class DataTakerThread(QThread):
                         command = lambda d=dev: self.instruments[d].read_voltage_DC()
                     elif param =='V_AC':
                         command = lambda d=dev: self.instruments[d].read_voltage_AC()
-                elif instr_type == 'LS340':
-                    if param == 'A':
-                        command = lambda d=dev: self.instruments[d].kread('A')
-                    elif param =='B':
-                        command = lambda d=dev: self.instruments[d].kread('B')
-                    elif param =='C':
-                        command = lambda d=dev: self.instruments[d].read('C')   
-                    elif param =='D':
-                        command = lambda d=dev: self.instruments[d].read('D')                         
                 elif instr_type == 'None':
                     command = lambda: 0
             else:
@@ -125,6 +114,79 @@ class DataTakerThread(QThread):
             data_set = [command() for command in self.data_channels]            
             self.emit(SIGNAL("data(PyQt_PyObject)"), np.array(data_set))              
             time.sleep(self.MEAS_TIME)            
+
+    def main_loop_core(field, f_1, f_2, f_3, coil_voltage, sample_current):
+        for sample in range(NUM_SAMPLES):
+            offset = 0
+            f_src.set_DC(3, offset)
+    
+            for phase in PHASES:
+                f_src.set_phase(3, phase)
+                #f_src.sync()
+                time.sleep(MEAS_TIME)
+                for point in range(NUM_POINTS):
+                    time.sleep(MEAS_TIME)
+                    data_set = [command() for command in self.data_channels]            
+                    self.emit(SIGNAL("data(PyQt_PyObject)"), np.array(data_set))  
+                    if self.isStopped() == True:
+                        print "terminated"
+                        return True, times_arr
+    
+        phase = 0
+        f_src.set_phase(3, phase)
+        for offset in OFFSETS:
+            ramp_to_setpoint(field + offset)
+            time.sleep(MEAS_TIME*2)
+            for point in range(NUM_DC_POINTS):   
+                time.sleep(MEAS_TIME)
+                data_set = [command() for command in self.data_channels]            
+                self.emit(SIGNAL("data(PyQt_PyObject)"), np.array(data_set))  
+                if self.isStopped() == True:
+                    print "terminated"
+                    return True, times_arr               
+        return False
+                    
+    def main_loop():
+        if using_magnet==True:
+            print "setting Amplitudes \n"
+            set_amplitudes(COIL_VOLTAGE, 0)
+            f_src.set_DC(3, 0)
+            lockins[0].set_ref_out(SAMPLE_CURRENT)
+            
+            print "setting frequencies \n"
+            [f_1, f_2, f_3] = set_frequencies(F1, F3, 0)
+    
+            
+            for field in FIELD_SET:
+                ramp_to_setpoint(field)
+    
+                print ("Thermalizing at new field.\n")
+                time.sleep(REST_TIME)    
+                print ("Starting data acquisition.\n")
+                #run the rest of the layers of the loop
+                stopped =  self.main_loop_core(field, f_1, f_2, f_3, COIL_VOLTAGE, SAMPLE_CURRENT)
+                if stopped:
+                    return "terminated"
+        else:
+            #using_magnet = False means it's a frequency sweep
+            #for coil_voltage in COIL_VOLTAGE_SET:
+            #for F3 in FREQ3_SET:
+            for i in range (1000):
+                #F1 = F3/2.0 - 2.5
+                print "setting Amplitudes \n"
+                set_amplitudes(COIL_VOLTAGE, 0)
+                f_src.set_DC(3, 0)
+                [f_1, f_2, f_3] = set_frequencies(F1, F3, 0)
+                
+                print "setting measurement current"
+                lockins[0].set_ref_out(SAMPLE_CURRENT)
+                
+                time.sleep(REST_TIME)  
+                stopped =  main_loop_core(0, f_1, f_2, f_3, COIL_VOLTAGE, SAMPLE_CURRENT)
+                if stopped:
+                    return "terminated"
+            
+        print "finished"
 
     def clean_up(self):
         for inst in self.instruments:

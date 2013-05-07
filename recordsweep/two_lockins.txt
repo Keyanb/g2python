@@ -2,5 +2,5 @@ TIME, TIME, , , False, False
 FIELD, IPS120, GPIB0::3, FIELD, True, False
 SRS1_X, SRS830, GPIB0::8, X, False, True
 SRS1_Y, SRS830, GPIB0::8, Y, False, True
-SRS2_X, SRS830, GPIB0::10, X, False, False
-SRS2_Y, SRS830, GPIB0::10, Y, False, False
+SRS2_X, SRS830, GPIB0::7, X, False, False
+SRS2_Y, SRS830, GPIB0::7, Y, False, False

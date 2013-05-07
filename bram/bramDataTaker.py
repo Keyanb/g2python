@@ -33,7 +33,7 @@ class DataTaker(QThread):
         measurement = {'Bode Plot': self.bodePlot,
                        'Wire Conductance':self.wireCond,
                        'Temperature Sweep':self.tempSweep,
-                       'Custom':self.scanRegion}
+                       'Custom':self.NMR}
                        
         measurement[self.meas]()
         
@@ -124,11 +124,12 @@ class DataTaker(QThread):
         stepTime = 1.0
         max_gate = -1.0
         stepsize = 0.002
-        windowlower = -0.58
-        windowupper = -0.68
+        windowlower = -0.5
+        windowupper = -0.7
         windowstep = 0.002
         gateVoltage = 0.0
         
+        self.setGate(-0.37,0.0)
         self.t_start = time.time()
 
         while gateVoltage > max_gate:
@@ -404,16 +405,16 @@ class DataTaker(QThread):
         #self.measurementRecord()
         
         stepTime = 5.0
-        max_freq = 42150000     #42300000
-        min_freq = 41950000      #42000000
-        stepsize = 500
-        freq = 41950000
+        min_freq = 45500000     #42300000
+        max_freq = 45800000      #42000000
+        stepsize = 1000
+        freq = 41900000
         self.RF.set_power(-18.0)
-        # Set the power values we will try
-        gate = [-0.3,-0.2,-0.1,-0.0]
+        # Set the gate values we will try
+        gate = [-0.0]
         
         self.t_start = time.time()
-        currentGate = -0.35
+        currentGate = -0.57
         for volts in gate: # Loop for power
             if self.stop == True:
                 break
@@ -444,7 +445,7 @@ class DataTaker(QThread):
         
         step = copysign(0.0001,target - gateVoltage)
         print step
-        stepTime = 0.3
+        stepTime = 0.1
         
         #self.measurementRecord('Ramping Gate to &f \n' % target)
         
@@ -515,11 +516,11 @@ class DataTaker(QThread):
         '''
         print "Initializing Dil Instruments..."
         self.lockin1 = SRS830.SRS830('GPIB0::8',debug)
-        self.lockin2 = SRS830.SRS830('GPIB0::10',debug)
+        self.lockin2 = SRS830.SRS830('GPIB0::7',debug)
         self.gate = keithley2400.device('GPIB0::24',debug)
         #self.magnet = IPS120.IPS120('GPIB0::')
         #self.temp = LS370.LS370('GPIB0::12',debug)
-        #self.RF = RF_source.RF_source('GPIB0::19',debug)
+        self.RF = RF_source.RF_source('GPIB0::19',debug)
         
     def custom_instr(self,debug=False):
         '''
