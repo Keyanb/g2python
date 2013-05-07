@@ -7,7 +7,7 @@ Created on Tue Feb 19 21:52:15 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import SRS830, IPS120, LS370, HP4263B, MKS, HP34401A
+import SRS830, IPS120, LS370, HP4263B, HP34401A, LS340
 import readconfigfile
 import time
 import numpy as np
@@ -45,6 +45,8 @@ class DataTakerThread(QThread):
                     elif instr_type == 'IPS120':
                         self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)  
                         self.instruments[dev].ips.clear()
+                    elif instr_type == 'LS340':               
+                        self.instruments[dev] = LS340.LS340(dev, debug=self.DEBUG) 
                     self.instrument_types[dev] = instr_type
                 else:
                     if instr_type != self.instrument_types[dev]:
@@ -71,6 +73,15 @@ class DataTakerThread(QThread):
                         command = lambda d=dev: self.instruments[d].read_voltage_DC()
                     elif param =='V_AC':
                         command = lambda d=dev: self.instruments[d].read_voltage_AC()
+                elif instr_type == 'LS340':
+                    if param == 'A':
+                        command = lambda d=dev: self.instruments[d].kread('A')
+                    elif param =='B':
+                        command = lambda d=dev: self.instruments[d].kread('B')
+                    elif param =='C':
+                        command = lambda d=dev: self.instruments[d].read('C')   
+                    elif param =='D':
+                        command = lambda d=dev: self.instruments[d].read('D')                         
                 elif instr_type == 'None':
                     command = lambda: 0
             else:

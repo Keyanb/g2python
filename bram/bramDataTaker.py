@@ -263,7 +263,7 @@ class DataTaker(QThread):
         thetaValue2 = float(self.lockin2.read_input(4))
 
         #field = float(self.magnet.read_field())
-        #temp = float(self.temp.read(9))
+        temp = float(self.temp.read(9))
 #        conductance = microtwopoint(rValue1)
 #        fourConductance = microfourpoint(rValue2)
         conductance = twopoint(rValue1)
@@ -505,7 +505,7 @@ class DataTaker(QThread):
         print "Initializing He3 Instruments..."
         self.lockin1 = SRS830.SRS830('GPIB0::8',debug)
         self.lockin2 = SRS830.SRS830('GPIB0::16',debug)
-        self.gate = DAC488.DAC488('GPIB0::10',debug)
+        self.gate = DAC488.DAC488('GPIB0::10',True)
         self.gate.set_range(4,1) # up to 10V 
         self.temp = LS340.LS340('GPIB0::12',debug)
     

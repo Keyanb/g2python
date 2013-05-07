@@ -14,10 +14,18 @@ class LS340:
             self.name = instrument(name)
             lak340 = self.name
             print lak340.ask('*IDN?')
+            
     
     def read(self, input):
         if self.debug == False:
             lak340 = self.name
             return lak340.ask('SRDG?'+str(input))
+        else:
+            return random.random()
+            
+    def kread(self, input):
+        if self.debug == False:
+            lak340 = self.name
+            return lak340.ask('KRDG?'+str(input))
         else:
             return random.random()

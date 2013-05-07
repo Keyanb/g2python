@@ -1,8 +1,7 @@
-TIME, TIME, , , False, False
-FIELD, IPS120, GPIB0::3, FIELD, True, False
-SRS1_X, SRS830, GPIB0::8, X, False, True
-SRS1_Y, SRS830, GPIB0::8, Y, False, True
-SRS2_X, SRS830, GPIB0::10, X, False, False
-SRS2_Y, SRS830, GPIB0::10, Y, False, False
-SRS3_X, SRS830, GPIB0::7, X, False, False
-SRS3_Y, SRS830, GPIB0::7, Y, False, False
+TIME, TIME, , , True, False
+Mantissa, HP34401A, GPIB0::1, V_DC, False, True
+Exponent, HP34401A, GPIB0::2, V_DC, False, True
+TempA, LS340, GPIB0::12, A, False, False
+TempB, LS340, GPIB0::12, B, False, False
+TempC, LS340, GPIB0::12, C, False, False
+TempD, LS340, GPIB0::12, D, False, False

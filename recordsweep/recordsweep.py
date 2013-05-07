@@ -35,7 +35,7 @@ except AttributeError:
 
 class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     MAX_CHANNELS = 10
-    INSTRUMENT_TYPES = ['TIME', 'IPS120', 'SRS830', 'HP34401A']   
+    INSTRUMENT_TYPES = ['TIME', 'IPS120', 'SRS830', 'HP34401A','LS340']   
     
     AVAILABLE_PARAMS = {}
     AVAILABLE_PARAMS['TIME'] = []
@@ -43,8 +43,9 @@ class RecordSweepWindow(QMainWindow, ui_recordsweep.Ui_RecordSweepWindow):
     AVAILABLE_PARAMS['IPS120'] = ['FIELD']
     AVAILABLE_PARAMS['SRS830'] = ['X', 'Y', 'R', 'Phase', 'AUX_1', 'AUX_2', 'AUX_3', 'AUX_4']   
     AVAILABLE_PARAMS['HP34401A'] = ['V_DC', 'V_AC']
+    AVAILABLE_PARAMS['LS340'] = ['A', 'B', 'C', 'D']
     
-    UNITS = {'FIELD': 'T', 'X': 'V', 'Y': 'V', 'R': 'V', 'PHASE': 'degrees', 'V_DC':'V', 'V_AC':'V'}    
+    UNITS = {'FIELD': 'T', 'X': 'V', 'Y': 'V', 'R': 'V', 'PHASE': 'degrees', 'V_DC':'V', 'V_AC':'V','A': 'K','B': 'K','C': 'kOhm','D': 'kOhm'}    
     
     def __init__(self, parent=None):
         super(RecordSweepWindow, self).__init__()
