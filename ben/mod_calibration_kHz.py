@@ -17,28 +17,28 @@ debug_mode = False
 using_magnet=True
 
 
-SAMPLE_CURRENT = 0.1
+SAMPLE_CURRENT = 2.0
 COIL_VOLTAGE = 1.0
 
 
 GAIN = 1
-I_MEAS = 10e-9
+I_MEAS = 2e-3
 
 NUM_SAMPLES = 3
 NUM_DC_POINTS = 10
-NUM_POINTS = 20
+NUM_POINTS = 10
 MEAS_TIME = 10
 REST_TIME = 30
-OFFSETS = [-0.002, 0.002]
+OFFSETS = [-0.003, 0.003]
 PHASES = [0, 180]
-FIELD_SET = arange(5.5, 5.75, 0.005)
-#FIELD_SET = 5.19 * ones (100)
+#FIELD_SET = arange(5.5, 5.75, 0.005)
+FIELD_SET = 0.0 * ones (100)
 
 FIELD_SWEEP_RATE = 0.005
-GPIB_2_CONNECTED = True
-GPIB_3_CONNECTED = True
-F1 = 6.5
-F3 = 50
+GPIB_2_CONNECTED = False
+GPIB_3_CONNECTED = False
+F1 = 13.5
+F3 = 200
 
 
 if GPIB_2_CONNECTED:
@@ -109,7 +109,7 @@ def set_frequencies (f_1, f_3, phase):
     #    f_raw_2 = f_raw_3 - f_raw_1
     #else:
     f_raw_plus = f_raw_3 + f_raw_1
-    f_raw_minus = f_raw_3 - f_raw_1
+    f_raw_minus = abs(f_raw_3 - f_raw_1)
         
     f_src.set_freq_raw(0, f_raw_1)
     f_src.set_freq_raw(1, f_raw_plus)        
@@ -162,11 +162,14 @@ def ramp_to_setpoint(field):
     still_ramping = True
     print ("Ramping field...")
     while still_ramping:
-        actual_field = string.rsplit(magnet.read_param(7), "+")[1]
+        actual_string = magnet.read_param(7)
+        actual_field = actual_string.rsplit('R')[1]
+        
         actual_field = string.rstrip(actual_field, chars='.')
         actual_field = float(actual_field)
-
-        set_field = string.rsplit(magnet.read_param(8), "+")[1]
+        
+        set_string = magnet.read_param(8)
+        set_field = set_string.rsplit('R')[1]
         set_field = string.rstrip(set_field, chars='.')
         set_field = float(set_field)
         
@@ -217,7 +220,7 @@ def main_loop_core(field, f_1, f_2, f_3, coil_voltage, sample_current):
                 print "terminated"
                 return True, times_arr    
             
-    
+    out_file.flush() 
                     
     return False
                 
@@ -262,6 +265,16 @@ def main_loop():
                 return "terminated"
         
     print "finished"
+        
+    out_file.close()
+    
+    for li in lockins:
+        li.close()
+    
+    if using_magnet==True:
+        magnet.close()
+    #lakeshore.close()
+    f_src.close()
     
 T = threading.Thread(target=main_loop)
 T.start()
@@ -276,12 +289,3 @@ while 1 :
                 running = False
 		break
 
-out_file.close()
-
-for li in lockins:
-    li.close()
-
-if using_magnet==True:
-    magnet.close()
-#lakeshore.close()
-f_src.close()

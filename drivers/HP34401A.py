@@ -24,6 +24,20 @@ class HP34401A:
         else:
             return 123.4
 
+    def read_current_DC(self):  
+        if self.debug == False:
+            string_data = self.inst.ask(':MEAS:CURR:DC?')
+            return float(string_data)
+        else:
+            return 123.4
+
+    def read_current_AC(self):  
+        if self.debug == False:
+            string_data = self.inst.ask(':MEAS:CURR:AC?')
+            return float(string_data)
+        else:
+            return 123.4            
+            
     def read(self):
         if self.debug == False:
             return self.inst.read()
