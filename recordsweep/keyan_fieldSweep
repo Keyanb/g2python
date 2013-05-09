@@ -1,0 +1,7 @@
+TIME, TIME, , , False, False
+FIELD, IPS120, GPIB0::3, FIELD, True, False
+SRS1_X, SRS830, GPIB0::8, X, False, True
+SRS1_Y, SRS830, GPIB0::8, Y, False, True
+SRS2_X, SRS830, GPIB0::16, X, False, False
+SRS2_Y, SRS830, GPIB0::16, Y, False, False
+lakeshore, LS340, GPIB0::12, D, False, False

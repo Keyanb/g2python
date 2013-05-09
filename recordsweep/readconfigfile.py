@@ -58,7 +58,7 @@ def open_data_file():
         elif left == "DATA_PATH":
             data_path = right
 
-    out_file_name = data_path + "sweep_"+cooldown+"_"+time.strftime("%m%d")
+    out_file_name = data_path + sample_name + "_" + cooldown +"_"+time.strftime("%m%d")
     
     n = 1
     while os.path.exists(out_file_name + ".%3.3d"%n):

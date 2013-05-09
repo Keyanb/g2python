@@ -7,7 +7,7 @@ Created on Tue Feb 19 21:52:15 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import SRS830, IPS120, LS370, HP4263B, HP34401A, LS340
+import SRS830, IPS120, LS370, HP4263B, HP34401A, LS340, PARO1000
 import readconfigfile
 import time
 import numpy as np
@@ -46,7 +46,9 @@ class DataTakerThread(QThread):
                         self.instruments[dev] = IPS120.IPS120(dev, debug=self.DEBUG)  
                         self.instruments[dev].ips.clear()
                     elif instr_type == 'LS340':               
-                        self.instruments[dev] = LS340.LS340(dev, debug=self.DEBUG) 
+                        self.instruments[dev] = LS340.LS340(dev, debug=self.DEBUG)
+                    elif instr_type == 'PARO1000':               
+                        self.instruments[dev] = PARO1000.PARO1000(dev, debug=self.DEBUG) 
                     self.instrument_types[dev] = instr_type
                 else:
                     if instr_type != self.instrument_types[dev]:
@@ -91,6 +93,11 @@ class DataTakerThread(QThread):
                         command = lambda d=dev: self.instruments[d].read('C')   
                     elif param =='D':
                         command = lambda d=dev: self.instruments[d].read('D')                         
+                
+                elif instr_type == 'PARO1000':
+                    if param == 'PRESSURE':
+                        command = lambda d=dev: self.instruments[d].read()
+                    
                 elif instr_type == 'None':
                     command = lambda: 0
             else:
